@@ -305,29 +305,38 @@ export default function PlayPage() {
       <Header />
       <main className="stage">
         <section className="board-wrap">
-          <div className="board-outer">
-            <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
-              <div className="flex justify-between items-center text-sm">
-                <div className="text-center">
-                  <Timer 
-                    startTime={startTime} 
-                    onElapsedChange={setElapsedMs}
-                    mistakes={mistakes}
-                    hints={hints}
-                  />
-                </div>
-                <div className="text-right text-xs text-gray-600 space-x-3">
-                  <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
-                  <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+          <div className="game-controls-container">
+            <button 
+              onClick={handleStopGame}
+              className="back-button"
+              aria-label="Go back"
+            >
+              ←
+            </button>
+            <div className="board-outer">
+              <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
+                <div className="flex justify-between items-center text-sm">
+                  <div className="text-center">
+                    <Timer 
+                      startTime={startTime} 
+                      onElapsedChange={setElapsedMs}
+                      mistakes={mistakes}
+                      hints={hints}
+                    />
+                  </div>
+                  <div className="text-right text-xs text-gray-600 space-x-3">
+                    <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
+                    <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="sudoku-grid">
-              <SudokuGrid
-                grid={grid}
-                selectedCell={selectedCell}
-                onCellSelect={setSelectedCell}
-              />
+              <div className="sudoku-grid">
+                <SudokuGrid
+                  grid={grid}
+                  selectedCell={selectedCell}
+                  onCellSelect={setSelectedCell}
+                />
+              </div>
             </div>
           </div>
         </section>

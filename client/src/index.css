@@ -206,6 +206,33 @@
     min-height: 0;
   }
   
+  .game-controls-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .back-button {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border: none;
+    font-size: 20px;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+  
+  .back-button:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateX(-2px);
+  }
+  
   .board-outer {
     /* Choose the largest square that fits both height and width */
     --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
