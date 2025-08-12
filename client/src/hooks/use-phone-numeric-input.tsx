@@ -7,7 +7,14 @@ export function usePhoneNumericInput(
   const ref = useRef<HTMLInputElement>(null);
 
   // Expose a method to focus the hidden input
-  const focusPad = () => ref.current?.focus({ preventScroll: true });
+  const focusPad = () => {
+    const input = ref.current;
+    if (input) {
+      console.log('Attempting to focus hidden input');
+      input.focus({ preventScroll: true });
+      console.log('Input focused, document.activeElement:', document.activeElement === input);
+    }
+  };
 
   useEffect(() => {
     const el = ref.current;
@@ -41,12 +48,22 @@ export function usePhoneNumericInput(
       inputMode="numeric"
       pattern="[0-9]*"
       aria-hidden="true"
+      autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
+      spellCheck="false"
       style={{ 
         position: "fixed", 
         opacity: 0, 
         pointerEvents: "none", 
-        left: -9999,
-        zIndex: -1
+        left: 0,
+        top: 0,
+        zIndex: -1,
+        width: 1,
+        height: 1,
+        border: 'none',
+        outline: 'none',
+        background: 'transparent'
       }}
     />
   );

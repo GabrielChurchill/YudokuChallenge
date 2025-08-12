@@ -183,6 +183,7 @@ export default function PlayPage() {
     setSelectedCell(cell);
     // Focus the hidden input on phones to trigger native keyboard
     if (window.innerWidth <= 640) {
+      console.log('Phone detected, focusing input for cell:', cell);
       focusPad();
     }
   };
