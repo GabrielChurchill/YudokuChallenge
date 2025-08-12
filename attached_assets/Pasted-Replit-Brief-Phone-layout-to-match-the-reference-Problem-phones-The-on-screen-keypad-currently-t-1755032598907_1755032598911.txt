@@ -1,0 +1,153 @@
+Replit Brief — Phone layout to match the reference
+Problem (phones)
+The on-screen keypad currently takes ~50% of the viewport and sometimes overlaps the board.
+
+The board is not sized with awareness of the keypad, so users end up scrolling and the digits can bleed outside the rounded container.
+
+Target (phones)
+Keypad always visible, but compact (~25–30% of height).
+
+No vertical scrolling during play; grid + keypad fit in one screen.
+
+Board stays square and fully clipped inside a rounded container.
+
+Clear / Hint (+30s) / Stop live inside the keypad bar.
+
+We are not using the native iOS keyboard here; we want the compact custom keypad visible like the screenshot.
+
+Implementation (HTML/CSS only; framework-agnostic)
+1) Markup structure (React/HTML)
+html
+Copy
+Edit
+<div class="play">
+  <header class="app-header">… timer • mistakes • hints …</header>
+
+  <main class="stage">
+    <section class="board-wrap">
+      <div class="board-outer">
+        <div id="board" class="grid">…cells…</div>
+      </div>
+    </section>
+
+    <aside class="custom-keypad" aria-label="Number keypad">
+      <div class="keys">
+        <button>1</button><button>2</button><button>3</button>
+        <button>4</button><button>5</button><button>6</button>
+        <button>7</button><button>8</button><button>9</button>
+      </div>
+      <div class="actions">
+        <button class="ghost">Clear</button>
+        <button class="primary">Hint (+30s)</button>
+        <button class="danger">Stop</button>
+      </div>
+    </aside>
+  </main>
+</div>
+2) Core variables (phones)
+css
+Copy
+Edit
+:root{
+  --header-h: 84px;           /* adjust if your header differs */
+  --gutter: 16px;
+  --keypad-h: clamp(180px, 28vh, 240px);   /* ~25–30% of viewport */
+}
+3) Layout & sizing
+css
+Copy
+Edit
+/* Full page uses dynamic viewport to avoid Safari jumps */
+.play{ display:grid; grid-template-rows:auto 1fr; height:100dvh; }
+
+/* Phone layout: board over keypad (two rows) */
+.stage{
+  display:grid;
+  grid-template-rows: 1fr auto;   /* board | keypad */
+  height: calc(100dvh - var(--header-h));
+  overflow:hidden;                 /* prevents overlay artifacts */
+}
+
+/* Square board sized by remaining space above the keypad */
+.board-wrap{ display:grid; place-items:center; min-height:0; }
+.board-outer{
+  /* Choose the largest square that fits both height and width */
+  --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter)*2);
+  --board-max-w: calc(100vw - var(--gutter)*2);
+  --board-size: min(max(340px, var(--board-max-h)), var(--board-max-w));
+
+  width:  var(--board-size);
+  height: var(--board-size);
+
+  border-radius:24px; overflow:hidden; background: var(--card, #fff);
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  padding: 8px;                    /* inner breathing room */
+}
+
+/* Grid/cell drawing */
+.grid{ width:100%; height:100%; border-radius:inherit; border-collapse:collapse; }
+.cell{ border:1.5px solid var(--divider-dark,#1E2433); line-height:1; }
+
+/* Compact keypad docked at bottom — never >30% height */
+.custom-keypad{
+  height: calc(var(--keypad-h) + env(safe-area-inset-bottom));
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--card,#fff);
+  box-shadow: 0 -8px 24px rgba(0,0,0,.08);
+  border-top-left-radius:20px; border-top-right-radius:20px;
+  display:grid; grid-template-rows: 1fr auto; gap:12px;
+}
+
+/* 3×3 numeric grid, square buttons with good touch size */
+.keys{
+  display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; align-content:center;
+}
+.keys button{
+  aspect-ratio:1/1; min-height:56px; border-radius:16px; font-size:20px;
+}
+
+/* Actions row */
+.actions{
+  display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;
+}
+.actions .primary{ background:#00D0B8; color:#fff; border-radius:16px; }
+.actions .danger { background:#FF6B6B; color:#fff; border-radius:16px; }
+.actions .ghost  { background:#EEF0F6; color:#10121A; border-radius:16px; }
+4) Clipping fix (no digits outside rounded corners)
+css
+Copy
+Edit
+.board-outer{ border-radius:24px; overflow:hidden; clip-path: inset(0 round 24px); }
+.grid{ border-radius:inherit; }
+5) Breakpoints so iPad/desktop stay as they were
+css
+Copy
+Edit
+/* Tablets (≥641px): keep your current bottom-docked keypad */
+@media (min-width:641px){
+  :root{ --keypad-h: clamp(220px, 26vh, 280px); }  /* slightly taller on iPad */
+}
+
+/* Desktop (≥1025px): if you use side-by-side elsewhere, keep it. If not, this
+   phone layout still works because the board will grow and the keypad remains modest. */
+(If you’ve already added special desktop/iPad layouts, keep those rules; this block only governs phones.)
+
+Why this works (and matches the screenshot)
+The keypad uses a hard height ceiling via --keypad-h: clamp(180px, 28vh, 240px), so it can’t expand beyond ~30% of the screen.
+
+The board’s size is computed from real remaining space, so it always fills the area above the keypad without causing scroll.
+
+The two-row grid (board | keypad) means the keypad never overlays the board.
+
+Rounded corners + overflow:hidden + clip-path ensure no bleed past the board’s curve.
+
+Acceptance checks (phones)
+ From Start → Finish there is no vertical scroll; grid + keypad are always fully visible.
+
+ The keypad height is ≤30% of the viewport (visual check on a typical iPhone).
+
+ The board is a perfect square; digits never bleed past the rounded corners.
+
+ Safe-area is respected; buttons are not covered by the home indicator.
+
+ Buttons are ≥56×56px with 12px gaps; easy to tap quickly.
