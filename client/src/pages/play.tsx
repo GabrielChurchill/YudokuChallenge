@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { usePhoneNumericInput } from "@/hooks/use-phone-numeric-input";
 import Header from "@/components/Header";
 import SudokuGrid from "@/components/SudokuGrid";
 import NumericKeypad from "@/components/NumericKeypad";
@@ -49,12 +48,6 @@ export default function PlayPage() {
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [finalTime, setFinalTime] = useState<string>('');
-
-  // Phone numeric input (for devices ≤640px)
-  const { HiddenInput, focusPad } = usePhoneNumericInput(
-    (digit) => handleNumberInput(digit),
-    () => handleClear()
-  );
 
   // Fetch puzzles
   const { data: puzzles } = useQuery<Puzzle[]>({
@@ -176,16 +169,6 @@ export default function PlayPage() {
     const newGrid = [...grid];
     newGrid[row][col] = { value: null, isInitial: false, isValid: true };
     setGrid(newGrid);
-  };
-
-  // Handle cell selection with phone optimization
-  const handleCellSelect = (cell: CellPosition) => {
-    setSelectedCell(cell);
-    // Focus the hidden input on phones to trigger native keyboard
-    if (window.innerWidth <= 640) {
-      console.log('Phone detected, focusing input for cell:', cell);
-      focusPad();
-    }
   };
 
   // Handle hint
@@ -351,20 +334,18 @@ export default function PlayPage() {
         </Card>
 
         {/* Sudoku Grid - Sized to fit */}
-        <div className="sudoku-grid-container">
-          <Card className="board-outer game-grid">
-            <CardContent className="p-4">
-              <SudokuGrid
-                grid={grid}
-                selectedCell={selectedCell}
-                onCellSelect={handleCellSelect}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card className="rounded-2xl shadow-lg game-grid">
+          <CardContent className="p-4">
+            <SudokuGrid
+              grid={grid}
+              selectedCell={selectedCell}
+              onCellSelect={setSelectedCell}
+            />
+          </CardContent>
+        </Card>
       </main>
 
-      {/* Numeric Keypad - Docked at bottom on iPad/desktop only */}
+      {/* Numeric Keypad - Docked at bottom */}
       <nav className="game-keypad" aria-label="Number keypad">
         <Card className="rounded-t-2xl shadow-xl border-0">
           <CardContent className="p-4">
@@ -377,35 +358,6 @@ export default function PlayPage() {
           </CardContent>
         </Card>
       </nav>
-
-      {/* Phone Action Bar - Bottom actions for mobile */}
-      <nav className="action-bar" aria-label="Actions">
-        <Button 
-          onClick={handleClear}
-          variant="outline"
-          size="lg"
-          className="h-12 text-gray-700 border-gray-300"
-        >
-          Clear
-        </Button>
-        <Button 
-          onClick={handleHint}
-          size="lg"
-          className="h-12 bg-yulife-teal hover:bg-yulife-teal/90 text-white"
-        >
-          Hint (+30s)
-        </Button>
-        <Button 
-          onClick={handleStopGame}
-          size="lg"
-          className="h-12 bg-red-500 hover:bg-red-600 text-white"
-        >
-          Stop
-        </Button>
-      </nav>
-
-      {/* Hidden input for phone numeric keyboard */}
-      <HiddenInput />
     </div>
   );
 }

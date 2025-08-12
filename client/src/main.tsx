@@ -6,7 +6,6 @@ import "./index.css";
 function setViewportHeight() {
   const vh = window.visualViewport?.height ?? window.innerHeight;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
-  document.documentElement.style.setProperty('--header-h', '64px');
 }
 
 // Set initial viewport height
