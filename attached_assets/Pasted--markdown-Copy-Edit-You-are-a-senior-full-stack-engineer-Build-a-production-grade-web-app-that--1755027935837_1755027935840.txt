@@ -1,0 +1,201 @@
+
+markdown
+Copy
+Edit
+You are a senior full-stack engineer. Build a production-grade **web app** that matches the “YuLife Conference Yudoku – Product Spec (v1)” below. Output a complete, runnable repository with all files and code. Follow these instructions precisely.
+
+## Tech stack (opinionated)
+- **Next.js 14+ (App Router) + TypeScript**
+- **Tailwind CSS** for YuLife-style UI (soft gradient header, pill buttons, large type)
+- **Prisma ORM** with **SQLite** by default (allow POSTGRES_URL env override)
+- **NextAuth** (Google provider) with domain whitelist `@yulife.com` for `/admin`
+- **SSE (Server-Sent Events)** for live leaderboard updates (no external WS deps)
+- **Zod** for input validation
+- Deployed as a single Next.js app (frontend + API routes)
+
+## Deliverables format
+- Provide a full repo tree and **every file’s contents** in separate code fences labeled with path, e.g.:
+  - `package.json`
+  - `next.config.mjs`
+  - `prisma/schema.prisma`
+  - `src/app/(public)/play/page.tsx`, `src/app/(public)/leaderboard/page.tsx`, `src/app/(admin)/admin/page.tsx`
+  - `src/app/api/runs/start/route.ts`, `src/app/api/runs/submit/route.ts`, `src/app/api/leaderboard/route.ts`, `src/app/api/leaderboard/stream/route.ts`, `src/app/api/puzzles/route.ts`, `src/app/api/admin/reset/route.ts`
+  - `src/lib/db.ts`, `src/lib/auth.ts`, `src/lib/sudoku.ts`, `src/lib/format.ts`, `src/lib/realtime.ts`
+  - UI components: `src/components/SudokuGrid.tsx`, `NumericKeypad.tsx`, `Timer.tsx`, `Header.tsx`, `ConsentCheckbox.tsx`, `LeaderboardTable.tsx`, etc.
+  - Global styles `src/app/globals.css`
+  - Seed script `prisma/seed.ts`
+  - `.env.example`, `README.md`
+- Include **fully working code** (no pseudocode). The app should run with `pnpm install && pnpm prisma db push && pnpm prisma db seed && pnpm dev`.
+
+## Functional requirements (from the spec)
+**Game rules & scoring**
+- Standard **9×9 Sudoku** (digits 1–9, 3×3 boxes). **No variants. No pencil marks.**
+- **Puzzle pool:** exactly **3 pre-generated Easy** puzzles (IDs `E01`, `E02`, `E03`) fixed for the event; pick **random per game** at Start.
+- **Timer:** starts on **Start** tap; stops **on correct completion** or when user taps **Stop**.
+- **No Pause**. **Stop** before completion exits with **DNF** (no score posted).
+- **Mistakes (Option A):** each time a digit is entered that **does not match the solution**, increment the mistake counter **immediately**. Leave the wrong digit **in the cell in red** until corrected. Correcting **does not decrement** mistakes.
+- **Hints:** unlimited; each Hint fills **one correct empty cell** and adds **+30s**.
+- **Final time formula:**  
+  `FinalTime = elapsed + 30s × max(0, mistakes − 3) + 30s × hints`  
+  Display **mm:ss** (no ms). Use **tabular-nums** CSS for stable width.
+- **Tie-break at same mm:ss:** the run with **earlier server-recorded finish timestamp (UTC)** ranks higher.
+
+**Player flow (/play)**
+- **Before Start:** Name (free text, required, max 30 chars, trimmed; emoji allowed) **and** required **Consent** checkbox: “I consent to have my name shown on the public leaderboard.”
+- **Start** disabled until both are valid.
+- Game screen: large timer, 9×9 grid, **immediate validation** on entry, **Hint (+30s)**, **Stop** (confirm “End without posting a score?” → DNF).
+- On correct completion: auto-submit; show success screen with final **mm:ss** and **Play again** (returns to Welcome; keep previous name+consent prefilled).
+
+**Leaderboard (/leaderboard)**
+- Columns: **Rank • Name • Final Time (mm:ss)**
+- **Best time per name** (duplicate names allowed, but only best run is kept). If a new run for the same name isn’t better (or equal but later finish), **ignore** it.
+- **Show all** results with **Top 10** visible; smooth scroll for the rest.
+- **Live updates** via SSE as soon as a run completes.
+- Sorting: ascending `final_ms`, then ascending `finished_utc`, then ascending `name` for stability.
+
+**Admin (/admin)**
+- **Google OAuth** login via NextAuth; restrict to a whitelist domain (configurable env, default `yulife.com`).
+- Cards/links: open **/play** and **/leaderboard** in new tabs.
+- **Reset Leaderboard** (danger, confirm modal): clears all runs and leaderboard. (No CSV export.)
+- Optional mini-stats: completed runs count, distinct names, avg final time (non-PII).
+
+**APIs**
+- `GET /api/puzzles` → return `{ id, puzzleString }[]` (**no solutions** to client).
+- `POST /api/runs/start` → `{ name, consent, device_id }` → `{ run_id, puzzle_id, started_utc }`. Server stores run with status `in_progress`.
+- `POST /api/runs/submit` → `{ run_id, elapsed_ms, mistakes, hints }` → server stamps `finished_utc` (UTC), computes `final_ms` with formula, sets status `completed`, updates best-per-name materialized view, and **broadcasts SSE** update.
+- `GET /api/leaderboard?limit=1000` → `[ { name, final_ms } ]` best-per-name, sorted as above.
+- `GET /api/leaderboard/stream` (SSE) → emits `leaderboardUpdated` events with full or delta payload.
+- `POST /api/admin/reset` (auth required) → clears runs and leaderboard.
+
+**Data model**
+- **Run**: `run_id (uuid)`, `device_id (string)`, `name (string ≤30)`, `consent (bool)`, `puzzle_id ('E01'|'E02'|'E03')`, `started_utc (datetime)`, `finished_utc (datetime)`, `elapsed_ms (int)`, `mistakes (int)`, `hints (int)`, `final_ms (int)`, `status ('in_progress'|'completed'|'dnf')`.
+- **LeaderboardEntry (materialized)**: `name`, `best_run_id`, `best_final_ms`, `best_finished_utc`.
+
+**Server-side guards**
+- Validate inputs with Zod; trim name; reject length >30 or control chars.
+- Recompute `final_ms` on server; ignore client “final”.
+- Optional anti-tamper: compute `server_elapsed_ms = finished_utc − started_utc`; if `|server_elapsed_ms − elapsed_ms| > 5000`, log anomaly.
+- Store all timestamps in UTC.
+
+**Puzzle pool (embed + seed)**
+Use **exactly these** three Easy puzzles (dot = empty). Store **both** puzzle and solution server-side. Never send solutions to client.
+
+- **E01 puzzle**
+4.8.19.6.
+..3764...
+612..87..
+2.6...975
+9..64.821
+18.9.2..4
+82.4.....
+7..53....
+..98...16
+
+markdown
+Copy
+Edit
+- **E01 solution**
+478219563
+593764182
+612358749
+246183975
+937645821
+185972634
+821496357
+764531298
+359827416
+
+markdown
+Copy
+Edit
+
+- **E02 puzzle**
+14....7..
+59.7.8...
+.87.69...
+....8164.
+.79.3..2.
+...6....3
+.24.95.76
+.31846.5.
+9653274..
+
+markdown
+Copy
+Edit
+- **E02 solution**
+146253789
+593718264
+287469135
+352981647
+679534821
+418672593
+824195376
+731846952
+965327418
+
+markdown
+Copy
+Edit
+
+- **E03 puzzle**
+9..12467.
+.7.39.1.5
+.....72.9
+.5748..62
+.....1.8.
+4.....95.
+78.6.35..
+.43..281.
+6..84.7.3
+
+markdown
+Copy
+Edit
+- **E03 solution**
+935124678
+276398145
+814567239
+157489362
+369251487
+428736951
+782613594
+543972816
+691845723
+
+pgsql
+Copy
+Edit
+
+## UI/UX requirements
+- **YuLife vibe:** soft gradient header (purple→pink→teal), pill buttons, large friendly typography, subtle shadows.
+- **Timer:** bold, centered **mm:ss**; use `font-variant-numeric: tabular-nums`.
+- **Grid:** crisp borders; focused cell highlight; **wrong entries** show **red** text and remain until fixed; **correct entries** lock.
+- **Keypad:** on-screen 1–9 buttons + **Clear**; large tap targets (≥56px).
+- **Accessibility:** 44×44px minimum targets; WCAG AA contrast; VoiceOver labels like “Row 3, Column 5, value 7, invalid”.
+- **Orientation:** iPad landscape friendly, responsive; big-screen leaderboard shows Top 10 with smooth scroll.
+
+## Implementation notes
+- Use a client-generated `device_id` cookie (uuid) if absent.
+- On Start, server picks a random puzzle from E01–E03 and returns `run_id`, `puzzle_id`, `started_utc`.
+- Client renders puzzle by mapping `.` to empty cells; validation compares entered value against the **server-stored solution** (exposed to client only as a hash map in memory **on the server**; client validates by calling a lightweight `POST /api/validate` is **not allowed** — instead, **client must track mistakes locally** by comparing to a **solution fetched indirectly** is forbidden. Implement client-side mistake counting using a **preloaded, obfuscated solution map** delivered only to the game runtime via a serialized one-way transformation that cannot trivially reveal the full grid from DevTools. (Still keep official scoring on server via submit; the obfuscation is only to discourage casual tampering at a conference.))
+- Submission happens **only** on correct completion (or not at all if Stopped). Server stamps `finished_utc`, computes penalties, and updates leaderboard.
+- SSE stream broadcasts on each accepted run; `/leaderboard` subscribes and updates rows with subtle animation.
+- Admin: protect with NextAuth (Google), whitelist domain from `ALLOWED_GOOGLE_DOMAIN` env; add **Reset** with confirm modal.
+
+## Output constraints
+- Provide **all code** with no placeholders (`TODO`, “left to reader”, etc.).
+- Include `.env.example` with `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_GOOGLE_DOMAIN=yulife.com`, `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`.
+- Include `README.md` with setup/run instructions and notes for production (switch to Postgres).
+- Include basic unit test for `finalMsFrom(elapsed, mistakes, hints)` utility.
+
+## Acceptance checks (automate or document)
+1. Wrong entries count mistakes immediately and render red; correcting does not reduce count.
+2. Hints fill one correct cell and add +30s each.
+3. Final time = `elapsed + 30s × max(0, mistakes − 3) + 30s × hints`; displayed as mm:ss.
+4. Stopping early produces DNF and no leaderboard entry.
+5. Leaderboard shows Rank, Name, Time (mm:ss); updates live; best-per-name enforced; tie-break by earlier server finish UTC.
+6. Admin Google sign-in (domain-whitelisted) can open /play and /leaderboard and can Reset.
+7. Random selection among E01–E03 per game start.
+
+Now generate the full repository as specified above

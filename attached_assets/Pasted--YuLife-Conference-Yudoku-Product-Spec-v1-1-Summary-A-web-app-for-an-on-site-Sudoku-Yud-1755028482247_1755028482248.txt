@@ -1,0 +1,626 @@
+# YuLife Conference Yudoku – Product Spec (v1)
+
+## 1) Summary
+
+A web app for an on‑site Sudoku (“Yudoku”) game with multiple iPads for play and a big‑screen live leaderboard. Players enter a name (and consent), tap **Start**, solve a standard 9×9 Sudoku. Final ranking is by fastest **Final Time (mm**\*\*:ss\*\*\*\*)\*\* with live updates. Admins use Google login to reset the event and to open quick links to the **Play** and **Leaderboard** views.
+
+---
+
+## 2) Game Rules & Scoring
+
+* **Puzzle type:** Standard 9×9 Sudoku (digits 1–9, 3×3 boxes). No variants. No pencil marks.
+* **Pool:** 3 pre‑generated *easy* puzzles (fixed for the event). Random selection **per game** at Start.
+* **Timer:**
+
+  * Starts: on user tap **Start**.
+  * Stops: automatically on correct completion **or** when user taps **Stop**.
+  * **No Pause**.
+* **Mistakes:** Option A — each entered digit that doesn’t match the puzzle’s solution is counted immediately.
+
+  * Wrong digit remains **in the cell** and is shown **red** until corrected.
+  * Mistake count does **not** decrease if corrected later.
+* **Hints:** Unlimited. Each hint fills one correct cell.
+* **DNF:** If the user taps **Stop** before completion, the game exits and **no score is posted**.
+* **Final time formula:**
+
+  * `FinalTime = elapsed + 30s × max(0, mistakes − 3) + 30s × hints`
+  * Displayed as **mm**\*\*:ss\*\* (no milliseconds).
+* **Ties (same mm**\*\*:ss\*\*\*\*):\*\* The earlier **server‑recorded finish timestamp (UTC)** ranks higher.
+
+---
+
+## 3) Leaderboard Rules
+
+* **Scope:** Best time **per name**. Multiple players may share the same name; the leaderboard shows a single entry for that name (the best run).
+* **Columns:** Rank • Name • Final Time (mm\:ss).
+* **Display:** Show all results; **top 10** visible with smooth scroll for the rest.
+* **Updates:** **Real‑time** push as soon as a qualifying run is submitted.
+* **Sorting:** Asc by FinalTime, then asc by FinishUTC (tie‑break), then asc by Name (stable).
+
+---
+
+## 4) Player Flow (iPad – /play)
+
+1. **Welcome screen** (event branding):
+
+   * Text field: **Name** (required; free text; max 30 chars; emoji allowed; trim whitespace).
+   * Checkbox: **“I consent to have my name shown on the public leaderboard.”** (required).
+   * Button: **Start** (disabled until both fields valid).
+   * Small print: link to Privacy/Terms (modal).
+2. **Game screen:**
+
+   * Header: Timer (mm\:ss) at top center.
+   * 9×9 grid; tap cell to focus; numeric keypad (1–9) at bottom.
+   * **Immediate validation** on digit entry:
+
+     * If digit ≠ solution: mark digit **red** in‑cell; increment mistake counter once per entry.
+     * If digit = solution: render in standard color; locked.
+   * Buttons:
+
+     * **Hint**: auto‑fills one correct empty cell; increments hint count (+30s each).
+     * **Stop**: confirm dialog “End without posting a score?” → on confirm, return to Welcome (DNF).
+3. **Completion:**
+
+   * When the last cell is correct, stop timer; compute penalties; send run to server; transition to a **“Great job!”** screen with final mm\:ss and an option: **“Play again”** (returns to Welcome, keeping the previously typed name and consent toggled).
+
+**Edge behavior**
+
+* Disable Start if Name empty or Consent unchecked.
+* Allow duplicate names. If the same name already has a better time, the leaderboard only updates if this run is **faster** (or equal time but earlier FinishUTC).
+* Network hiccup on submit: show brief “Submitting…” with auto‑retry; if still failing after 10s, show **“Retry / Save & Exit”** (local queue). The leaderboard syncs when back online.
+
+---
+
+## 5) Leaderboard View (Big Screen – /leaderboard)
+
+* Full‑screen responsive layout.
+* Header with event branding and optional subtitle (configurable).
+* **Rows:** Rank • Name • Final Time (mm\:ss). Top 10 fill the viewport; auto‑scroll or scrollbar for the rest.
+* **Live updates:** via WebSocket or SSE; row animations for insert/update.
+* **No controls** visible to the public.
+
+---
+
+## 6) Admin View (Google‑auth – /admin)
+
+* **Login:** Google OAuth (SSO). Only allow whitelisted @yulife.com accounts (configurable).
+* **Cards/Links:**
+
+  * **Open Player** (/play) – opens in a new tab.
+  * **Open Leaderboard** (/leaderboard) – opens in a new tab.
+* **Reset Leaderboard** (danger): requires confirm → clears all runs, leaderboard, and local queued submissions.
+* **Stats (optional lightweight at top):** count of completed runs, distinct names, avg final time (non‑PII).
+
+---
+
+## 7) Puzzle Pool (fixed for the event)
+
+* Selection: **Random per game** from three **Easy** puzzles below. Use IDs `E01`, `E02`, `E03`.
+* Format: `.` denotes an empty cell in the puzzle definition.
+
+**E01 (puzzle)**
+
+```
+4.8.19.6.
+..3764...
+612..87..
+2.6...975
+9..64.821
+18.9.2..4
+82.4.....
+7..53....
+..98...16
+```
+
+**E01 (solution)**
+
+```
+478219563
+593764182
+612358749
+246183975
+937645821
+185972634
+821496357
+764531298
+359827416
+```
+
+**E02 (puzzle)**
+
+```
+14....7..
+59.7.8...
+.87.69...
+....8164.
+.79.3..2.
+...6....3
+.24.95.76
+.31846.5.
+9653274..
+```
+
+**E02 (solution)**
+
+```
+146253789
+593718264
+287469135
+352981647
+679534821
+418672593
+824195376
+731846952
+965327418
+```
+
+**E03 (puzzle)**
+
+```
+9..12467.
+.7.39.1.5
+.....72.9
+.5748..62
+.....1.8.
+4.....95.
+78.6.35..
+.43..281.
+6..84.7.3
+```
+
+**E03 (solution)**
+
+```
+935124678
+276398145
+814567239
+157489362
+369251487
+428736951
+782613594
+543972816
+691845723
+```
+
+---
+
+## 8) Data Model (server)
+
+**Run**
+
+* `run_id` (UUID)
+* `device_id` (UUID cookie from client; regenerated if absent)
+* `name` (string, ≤30)
+* `consent` (bool)
+* `puzzle_id` (E01/E02/E03)
+* `started_utc` (ISO‑8601)
+* `finished_utc` (ISO‑8601) – set on server at submission
+* `elapsed_ms` (int) – from client Start→Finish; server also computes `server_elapsed_ms = finished_utc − started_utc` for anomaly checks
+* `mistakes` (int ≥0)
+* `hints` (int ≥0)
+* `final_ms` (int) – computed on server per formula
+* `status` (enum: completed|dnf)
+
+**LeaderboardEntry** (materialized view)
+
+* `name`
+* `best_run_id`
+* `best_final_ms`
+* `best_finished_utc`
+
+---
+
+## 9) APIs
+
+All responses JSON; admin endpoints require Google OAuth + same‑origin CSRF for POST.
+
+**Public**
+
+* `GET /api/leaderboard?limit=1000` → `[ { name, final_ms } ]` sorted asc; server enforces best‑per‑name and tie‑break.
+* `GET /api/puzzles` → list of `{ id, puzzleString }` (no solutions to client).
+* `POST /api/runs/start` → body `{ name, consent, device_id }` → `{ run_id, puzzle_id, started_utc }`.
+* `POST /api/runs/submit` → body `{ run_id, elapsed_ms, mistakes, hints }` → server stamps `finished_utc`, computes `final_ms`, persists, broadcasts update.
+
+**Admin**
+
+* `POST /api/admin/reset` → clears runs and leaderboard.
+
+**Realtime**
+
+* `GET /api/leaderboard/stream` (SSE) **or** `/ws` (WebSocket) → push `leaderboardUpdated` events.
+
+---
+
+## 10) Validation & Server‑Side Guards
+
+* Name required, trimmed; reject length >30; reject control chars.
+* Consent must be true.
+* Server recomputes `final_ms`; ignores any client‑sent final.
+* Optional anti‑tamper: compare `server_elapsed_ms` with client `elapsed_ms`; log if drift >5s.
+
+---
+
+## 11) UI/UX Details
+
+* **Timer:** large, bold **mm**\*\*:ss\*\* to match screenshots.
+* **Grid:** crisp borders; focused cell highlight; invalid entries in **red**; correct entries in default text color.
+* **Keypad:** 1–9 buttons; a **Clear** key to empty a cell.
+* **Accessibility:** large tap targets; sufficient contrast; supports VoiceOver labels (cell coordinates like “Row 3, Col 5, value 7”).
+* **Orientation:** iPad landscape locked; responsive to 10–13″ displays.
+
+---
+
+## 12) Deployment & Tech
+
+* **Frontend:** React or vanilla TS; runs in Safari (iOS 16+). Two routes: `/play`, `/leaderboard`; `/admin` gated.
+* **Backend:** Node/Express (or FastAPI) + Postgres/SQLite; deploy on a small container/VM; TLS enforced.
+* **Realtime:** SSE (simpler) or WebSocket for leaderboard.
+* **Caching:** CDN for static assets; short‑TTL cache for leaderboard GET.
+
+---
+
+## 13) Privacy & Data Retention
+
+* Collected: player name, consent flag, gameplay telemetry (mistakes/hints), and timestamps. No contact details.
+* **Export CSV:** **Disabled** per requirements.
+* **Reset** purges all stored runs/leaderboard data.
+
+---
+
+## 14) Acceptance Criteria (high‑level)
+
+1. A player can complete a puzzle and see Final Time = `elapsed + 30s × max(0, mistakes − 3) + 30s × hints`.
+2. Wrong entries render red and count immediately as mistakes; correcting doesn’t reduce the count.
+3. Hints fill valid cells and add 30s each.
+4. **Stop** before completion produces DNF and no leaderboard change.
+5. Leaderboard shows **Rank, Name, Final Time (mm**\*\*:ss\*\*\*\*)\*\*; updates live when a run completes.
+6. Best‑per‑name is enforced; a slower subsequent run for the same name does not lower their rank.
+7. Ties (mm\:ss) are ordered by earlier server **FinishUTC**.
+8. Admin can Google‑auth, open quick links, and **Reset** successfully.
+9. Random puzzle selection across **E01–E03** at Start.
+10. Works on iPad Safari and a large display for the leaderboard.
+
+---
+
+## 15) Open/Assumed Items
+
+* **Time cap:** none (unlimited). Players can end early via **Stop**.
+* **Branding:** provide event logo/colors; defaults to YuLife styles.
+* **Copy:** finalize consent/terms text.
+
+---
+
+### Appendix: Copy Drafts
+
+* Consent checkbox: “I consent to have my name shown on the public leaderboard for this game.”
+* Stop confirm: “End without posting a score? Your progress will be lost.”
+* Completion banner: “Great job! Your time was {mm\:ss}. It’s on the leaderboard.”
+
+---
+
+## 16) Wireframes (YuLife style)
+
+> Low‑fi, content‑first wireframes that reflect YuLife’s friendly, rounded aesthetic: soft gradient header, pill buttons, large type, generous whitespace. These are not pixel‑perfect; they define layout, hierarchy, and key interactions.
+
+### A) /play — Welcome (Name + Consent)
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Yudoku                                                                ⓘ │
+│  (YuLife gradient header: subtle purple→pink→teal wash)                  │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  [ Title: “Play Yudoku” ]                                               │
+│                                                                          │
+│  [ Name input________________________ ]                                  │
+│  [ ] I consent to have my name shown on the public leaderboard.          │
+│                                                                          │
+│                         [ Start ▶ ]  (primary pill, disabled until valid)│
+│                                                                          │
+│  Privacy · Terms                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+Notes:
+- Header contains small YuLife logo lockup on left; info icon opens gameplay tips.
+- Max name length 30; show helper/error if empty or too long.
+```
+
+### B) /play — Game (Timer + Grid + Keypad)
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  ← Back                 05:42 (mm:ss, bold XL)               Mistakes: 4 │
+│                                   Hints: 1                              │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│   9×9 GRID (square)                                                      │
+│   - Empty cell: light outline                                            │
+│   - Focused cell: thicker outline                                        │
+│   - Correct entry: default text                                          │
+│   - Wrong entry: RED text, cell keeps value (counts immediately)         │
+│                                                                          │
+│  [ Hint (+30s) ]                     [ Stop ]                            │
+│                                                                          │
+│  NUMPAD:  [1] [2] [3] [4] [5] [6] [7] [8] [9]   [ Clear ]                │
+└──────────────────────────────────────────────────────────────────────────┘
+Notes:
+- Landscape iPad: grid centered; keypad bottom; controls spaced for thumbs.
+- Color system: default text on neutral bg; error = YuLife‑brand red; buttons = brand primary.
+```
+
+### C) /play — Stop Confirm (Modal)
+
+```
+┌───────────────────────────────┐
+│  End without posting a score? │
+│  Your progress will be lost.  │
+│                               │
+│  [ Cancel ]   [ End (DNF) ]   │
+└───────────────────────────────┘
+```
+
+### D) /play — Completion
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Confetti burst (subtle)                                                │
+│  Great job!                                                             │
+│  Your time: 03:18                                                      │
+│                                                                         │
+│  [ Play again ]                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+Notes:
+- Submit happens automatically on completion; “Play again” returns to Welcome with name+consent prefilled.
+```
+
+### E) /leaderboard — Big Screen
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Yudoku Leaderboard                                                     │
+│  (Subhead: “Fastest final time wins • Live updates”)                     │
+├────┬──────────────────────────────┬───────────┐                          │
+│ #  │ Name                         │ Time mm:ss│                          │
+├────┼──────────────────────────────┼───────────┤                          │
+│ 1  │ Taylor S.                    │ 02:45     │                          │
+│ 2  │ Alex                         │ 02:52     │                          │
+│ 3  │ Jordan                       │ 03:01     │                          │
+│ …  │ …                            │ …         │                          │
+└────┴──────────────────────────────┴───────────┘                          │
+Notes:
+- Viewport shows Top 10; gentle auto‑scroll reveals the rest.
+- Rows animate in place on updates; mm:ss aligned right.
+```
+
+### F) /admin — Google‑auth & Controls
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  Admin                                                                  │
+├──────────────────────────────────────────────────────────────────────────┤
+│  [ Sign in with Google ]  (whitelist @yulife.com)                        │
+│                                                                          │
+│  After login:                                                            │
+│  ┌──────────────┐   ┌────────────────┐   ┌─────────────────────────────┐ │
+│  │ Open Player  │   │ Open Leaderboard│   │ Reset Leaderboard (danger) │ │
+│  └──────────────┘   └────────────────┘   └─────────────────────────────┘ │
+│                                                                          │
+│  (Optional mini‑stats) Runs: 128  •  Names: 93  •  Avg Time: 04:37       │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Visual Style Guidelines (match YuLife.com vibe)
+
+* **Typography:** large, friendly headings; comfortable line heights; numeric timer uses tabular figures for stable width.
+* **Color:** soft gradient header (purple→pink→teal), white cards, subtle shadows; high‑contrast error red for wrong digits; accessible contrast for text.
+* **Shapes:** pill buttons, 2xl rounded corners, airy spacing (24–32px gutters), playful micro‑animations.
+* **Motion:** gentle ease on list updates; confetti on completion (performance‑safe, can be CSS‑based).
+* **Branding hooks:** optional mascot/shape motif in header background at 8–12% opacity.
+
+### Key iPad Layout Metrics
+
+* Target grid cell on iPad 11″ landscape: \~72–80px, ensuring keypad buttons ≥56px touch target.
+* Timer text \~40–56px; primary CTA height \~56–64px.
+* Safe‑area aware; keep important controls away from screen edges.
+
+### Accessibility Targets
+
+* Minimum 44×44px touch targets; WCAG AA contrast; VoiceOver labels like “Row 3, Column 5, value 7, invalid”.
+
+(End wireframes)
+
+---
+
+## 17) Brand Style Guide — **Sudoku** (Direction 3)
+
+A precise, developer‑ready guide for implementing a cohesive brand across **/play**, **/leaderboard**, and **/admin**. This direction embraces a playful
+gamified “arcade hall of fame” feel, with dark‑mode glam for the leaderboard and a focused, lighter canvas for gameplay.
+
+### Overview
+
+* **Design goals:** celebratory, competitive, legible at distance, fast to parse.
+* **Theming strategy:**
+
+  * **Light theme (Play):** keeps focus and clarity for puzzle solving.
+  * **Dark theme (Leaderboard):** dramatic, high‑contrast stage for rankings.
+* **Shape language:** rounded cards (20–24px), pill buttons, badge frames.
+* **Motion:** quick and friendly; subtle shine/glow for “win” moments.
+
+### Colour palette (hex)
+
+**Core tokens**
+
+* `--purple-arcade` `#5F5CF1` (Primary)
+* `--teal-arcade` `#00D0B8` (Accent A)
+* `--pink-arcade` `#FF7AD9` (Accent B)
+* `--gold` `#F4C95D` (Trophies/Crowns)
+* `--error` `#FF6B6B` (Errors/Wrong digits)
+* `--ink` `#10121A` (Primary text on light)
+* `--night` `#0B0F1A` (Dark background)
+* `--surface` `#FFFFFF` (Light surface)
+* `--divider` `#1E2433` (Hairlines on dark), `#E6EAF2` (on light)
+
+**Semantic roles (by theme)**
+
+* **Light (/play)**
+
+  * Background: `#FAFBFF`
+  * Surface: `#FFFFFF`
+  * Text: `#10121A`
+  * Primary button: `#5F5CF1` on `#FFFFFF`
+  * Focus ring: `#00D0B8` (3px outside)
+  * Error text/borders: `#FF6B6B`
+* **Dark (/leaderboard)**
+
+  * Background: `#0B0F1A`
+  * Surface card: `#12172A`
+  * Text high‑contrast: `#FFFFFF`
+  * Subtext: `#A6ADBD`
+  * Row highlight (Top 3): gold `#F4C95D`, silver `#C9D1D9`, bronze `#D39C6C`
+
+**Signature gradient** (dark headers/hero)
+
+```css
+background: linear-gradient(120deg, #0B0F1A 0%, #1C1940 60%, #35226F 100%);
+```
+
+### Typography
+
+* **Headlines:** **Sora** (700/600). Purpose: playful, geometric headings (Leaderboard title, badges).
+* **Body/UI:** **Inter** (400/500/600). Purpose: crisp legibility on iPad.
+* **Numbers (timer/score):** Inter with **tabular numerals**.
+* **Sizes (rem):**
+
+  * Display: 2.25 (Leaderboard title)
+  * H1: 1.75 (section titles)
+  * H2: 1.5
+  * Body: 1.0
+  * Small: 0.875
+  * Timer: clamp(2rem, 5vw, 3.5rem)
+* **CSS features:**
+
+```css
+.timer { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.heading { font-weight: 700; }
+.body { font-weight: 400; line-height: 1.5; }
+```
+
+### Iconography
+
+* **Library:** Lucide (outline)
+* **Stroke:** 1.75px; rounded joins/caps.
+* **Sizes:** 24px standard; 32px for large actions; 40–48px for podium icons.
+* **Key symbols:** crown (rank #1), trophy (top 3), info (tips), chevron-left (back), sparkles (celebration).
+* **Colouring:** follow text colour in context; use `--gold` for crowns/trophies on dark.
+
+### Layout and spacing
+
+* **Base grid:** 4px spacing scale; components snap to multiples of 4.
+* **Spacing tokens (px):** 4, 8, 12, 16, 20, 24, 32, 40, 48, 64.
+* **Radii:** 12 (inputs), 20 (cards), 24 (major cards), `9999` (pills).
+* **Shadows:**
+
+  * Light card: `0 8px 24px rgba(27,31,42, .06)`
+  * Dark card: `0 10px 30px rgba(95,92,241, .18)`
+  * Neon accent (use sparingly on CTAs): `0 0 24px rgba(95,92,241,.50)`
+* **Safe areas:** respect iPad notch and browser UI; keep primary actions ≥24px from screen edges.
+* **Component metrics:**
+
+  * **Grid cells:** 72–80px on 11″ iPad landscape; 2px cell borders; 8px gap to keypad.
+  * **Keypad buttons:** min 56×56px; 16px internal padding; 12px gap.
+  * **Primary button height:** 56–64px; icon + label centred.
+  * **Leaderboard rows:** 56–64px row height; 20px vertical rhythm.
+
+### Tone of voice
+
+* **Personality:** upbeat, celebratory, concise, action‑oriented.
+* **Guidelines:**
+
+  * Use verbs: “Start”, “Play again”, “Well played!”
+  * Keep messages short: ≤60 characters for toasts.
+  * Avoid blame: say “That digit doesn’t fit yet,” not “You’re wrong.”
+* **Examples:**
+
+  * Success: “Great job! Your time is 03:18.”
+  * Hint used: “Hint applied (+30s).”
+  * Error entry: “Digit conflicts with this cell.”
+  * Stop confirm: “End without posting a score?”
+
+### Motion & feedback
+
+* **Durations:** 150–200ms for taps/hover; 250–300ms for page transitions.
+* **Easings:** `cubic-bezier(.2,.8,.2,1)` for entrance; `cubic-bezier(.4,0,.2,1)` for exits.
+* **Micro‑interactions:**
+
+  * Button press: scale 0.98 + shadow reduce.
+  * Leaderboard update: row slides in from its rank position with 150ms fade.
+  * Completion: subtle sparkle overlay ≤800ms; reduced‑motion: fade only.
+
+### States & accessibility
+
+* **Focus:** 3px outer ring `--teal-arcade` on dark, `--purple-arcade` on light; ensure 3:1 ring contrast vs background.
+* **Hover/active:** +4% brightness on hover; −6% on active.
+* **Disabled:** 40% opacity; no shadow; pointer-events none.
+* **Contrast:** meet **WCAG AA** (4.5:1 body text; 3:1 large text/icons).
+* **Touch targets:** ≥44×44px. VoiceOver cell labels: “Row {r}, Column {c}, value {v}, invalid/locked/empty”.
+
+### Components (visual spec)
+
+* **Buttons (primary pill):**
+
+  * Light: bg `--purple-arcade`, text `#FFFFFF`; hover +4% brightness; shadow neon on Leaderboard CTAs.
+  * Dark: bg `#5F5CF1` over `#12172A`; focus ring `--teal-arcade`.
+* **Inputs:** 12px radius; 1px border `#E6EAF2` (light) / `#2A2F40` (dark); focus ring 3px as above.
+* **Sudoku grid:** light theme card; numbers default `#10121A`; **wrong digits** `--error`; correct entries lock to primary text colour.
+* **Timer:** large, tabular nums; on dark, text `#FFFFFF`; on light, `#10121A`.
+* **Leaderboard rows:** alternating subtle overlays on dark (`rgba(255,255,255,.02)`); top‑3 with podium bars: gold/silver/bronze left accents 4px wide.
+
+### CSS variables (authoritative tokens)
+
+```css
+:root{
+  --purple-arcade:#5F5CF1; --teal-arcade:#00D0B8; --pink-arcade:#FF7AD9;
+  --gold:#F4C95D; --error:#FF6B6B; --ink:#10121A; --night:#0B0F1A;
+  --surface:#FFFFFF; --divider-dark:#1E2433; --divider-light:#E6EAF2;
+}
+.theme-light{ --bg:#FAFBFF; --text:#10121A; --card:#FFFFFF; --divider:#E6EAF2; }
+.theme-dark { --bg:#0B0F1A; --text:#FFFFFF; --subtext:#A6ADBD; --card:#12172A; --divider:#1E2433; }
+```
+
+### Tailwind extension (reference)
+
+```js
+// tailwind.config.js (excerpt)
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        purpleArcade: '#5F5CF1', tealArcade: '#00D0B8', pinkArcade: '#FF7AD9',
+        gold: '#F4C95D', error: '#FF6B6B', ink: '#10121A', night: '#0B0F1A'
+      },
+      borderRadius: { card: '20px', xl: '24px', pill: '9999px' },
+      boxShadow: {
+        soft: '0 8px 24px rgba(27,31,42,.06)',
+        darkCard: '0 10px 30px rgba(95,92,241,.18)',
+        neon: '0 0 24px rgba(95,92,241,.5)'
+      },
+      fontFamily: {
+        heading: ['Sora', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif']
+      }
+    }
+  }
+}
+```
+
+### Asset rules
+
+* **Logos & marks:** use provided event logo; crown/trophy assets as inline SVG.
+* **Illustrations:** abstract rounded shapes at 6–12% opacity; avoid realistic photos behind text.
+* **Confetti/sparkles:** CSS or lightweight canvas; limit to ≤800ms and ≤60 particles for perf.
+
+### Do / Don’t
+
+* **Do:** keep high contrast for timer; animate leaderboard updates subtly; ensure podium colours are colour‑blind friendly (gold/silver/bronze + icons).
+* **Don’t:** use long shadows on text; use red for non‑error accents; add noisy backgrounds behind the puzzle grid.
+
+(End Brand Style Guide — Sudoku)
