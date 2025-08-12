@@ -201,26 +201,15 @@
   
   /* Square board sized by remaining space above the keypad */
   .board-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     min-height: 0;
-    width: 100%;
-    padding: 0 var(--gutter);
   }
   
   .game-controls-container {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    width: 100%;
-    max-width: 400px; /* match keypad max-width */
-    margin: 0 auto;
-  }
-  
-  .board-outer {
-    flex: 1;
-    min-width: 0;
   }
   
   .back-button {
@@ -256,13 +245,12 @@
   }
   
   .board-outer {
-    flex: 1;
-    min-width: 0;
     /* Choose the largest square that fits both height and width */
     --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
-    --board-size: min(max(280px, var(--board-max-h)), 100%);
+    --board-max-w: calc(100vw - var(--gutter) * 2);
+    --board-size: min(max(340px, var(--board-max-h)), var(--board-max-w));
     
-    width: 100%; /* fill available space in container */
+    width: var(--board-size);
     height: var(--board-size);
     
     border-radius: 24px;
@@ -363,10 +351,6 @@
   @media (min-width: 641px) {
     :root {
       --keypad-h: clamp(180px, 24vh, 220px);
-    }
-    
-    .game-controls-container {
-      max-width: 500px; /* match tablet keypad max-width */
     }
     
     .keypad-grid {
