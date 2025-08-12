@@ -181,7 +181,7 @@
   :root {
     --header-h: 84px;
     --gutter: 16px;
-    --keypad-h: clamp(180px, 28vh, 240px); /* ~25-30% of viewport */
+    --keypad-h: clamp(160px, 22vh, 200px); /* Reduced to ~20-25% of viewport */
   }
   
   /* Full page uses dynamic viewport to avoid Safari jumps */
@@ -231,32 +231,33 @@
     border-collapse: collapse;
   }
   
-  /* Compact keypad docked at bottom — never >30% height */
+  /* Compact keypad docked at bottom — never >25% height */
   .custom-keypad {
     height: calc(var(--keypad-h) + env(safe-area-inset-bottom));
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
     background: var(--card, #fff);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     display: grid;
     grid-template-rows: 1fr auto;
-    gap: 12px;
+    gap: 8px;
   }
   
-  /* 3×3 numeric grid, square buttons with good touch size */
+  /* 3×3 numeric grid, compact square buttons */
   .keys {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 8px;
     align-content: center;
   }
   
   .keys button {
     aspect-ratio: 1/1;
-    min-height: 56px;
-    border-radius: 16px;
-    font-size: 20px;
+    min-height: 40px;
+    max-height: 48px;
+    border-radius: 12px;
+    font-size: 18px;
     font-weight: 600;
     background: #EEF0F6;
     color: #10121A;
@@ -273,15 +274,17 @@
   .actions {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
+    gap: 8px;
   }
   
   .actions button {
-    min-height: 48px;
-    border-radius: 16px;
+    min-height: 40px;
+    max-height: 44px;
+    border-radius: 12px;
     font-weight: 600;
     border: none;
     transition: all 0.2s ease;
+    font-size: 14px;
   }
   
   .actions .primary {
@@ -311,23 +314,47 @@
     background: #E0E4EA;
   }
   
-  /* Tablets (≥641px): slightly taller keypad for iPad */
+  /* Tablets (≥641px): slightly taller keypad for iPad but still compact */
   @media (min-width: 641px) {
     :root {
-      --keypad-h: clamp(220px, 26vh, 280px);
+      --keypad-h: clamp(180px, 24vh, 220px);
+    }
+    
+    .keys button {
+      min-height: 44px;
+      max-height: 52px;
+      font-size: 20px;
+    }
+    
+    .actions button {
+      min-height: 44px;
+      max-height: 48px;
+      font-size: 16px;
     }
   }
   
-  /* Desktop/large screens: allow bigger boards */
+  /* Desktop/large screens: allow bigger boards but keep compact keypad */
   @media (min-width: 1025px) {
     :root {
-      --keypad-h: clamp(240px, 24vh, 300px);
+      --keypad-h: clamp(200px, 22vh, 240px);
     }
     
     .board-outer {
       --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
       --board-max-w: calc(100vw - var(--gutter) * 2);
       --board-size: min(max(400px, var(--board-max-h)), min(600px, var(--board-max-w)));
+    }
+    
+    .keys button {
+      min-height: 48px;
+      max-height: 56px;
+      font-size: 22px;
+    }
+    
+    .actions button {
+      min-height: 48px;
+      max-height: 52px;
+      font-size: 18px;
     }
   }
 }
