@@ -233,6 +233,17 @@
     transform: translateX(-2px);
   }
   
+  .hint-button {
+    min-height: 24px;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .hint-button:hover {
+    transform: scale(1.02);
+  }
+  
   .board-outer {
     /* Choose the largest square that fits both height and width */
     --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);

@@ -326,7 +326,16 @@ export default function PlayPage() {
                   </div>
                   <div className="text-right text-xs text-gray-600 space-x-3">
                     <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
-                    <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+                    {selectedCell && !grid[selectedCell.row]?.[selectedCell.col]?.value ? (
+                      <button
+                        onClick={handleHint}
+                        className="hint-button bg-yulife-indigo hover:bg-yulife-purple text-white px-2 py-1 rounded text-xs font-semibold transition-colors"
+                      >
+                        Get Hint (+30s)
+                      </button>
+                    ) : (
+                      <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+                    )}
                   </div>
                 </div>
               </div>
