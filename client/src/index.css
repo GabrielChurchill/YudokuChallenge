@@ -181,7 +181,7 @@
   :root {
     --header-h: 84px;
     --gutter: 16px;
-    --keypad-h: clamp(90px, 16vh, 120px); /* Ultra compact keypad */
+    --keypad-h: clamp(160px, 22vh, 200px); /* Reduced to ~20-25% of viewport */
   }
   
   /* Full page uses dynamic viewport to avoid Safari jumps */
@@ -201,15 +201,26 @@
   
   /* Square board sized by remaining space above the keypad */
   .board-wrap {
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 0;
+    width: 100%;
+    padding: 0 var(--gutter);
   }
   
   .game-controls-container {
     display: flex;
     align-items: flex-start;
     gap: 12px;
+    width: 100%;
+    max-width: 400px; /* match keypad max-width */
+    margin: 0 auto;
+  }
+  
+  .board-outer {
+    flex: 1;
+    min-width: 0;
   }
   
   .back-button {
@@ -245,22 +256,21 @@
   }
   
   .board-outer {
+    flex: 1;
+    min-width: 0;
     /* Choose the largest square that fits both height and width */
-    --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 4);
-    --board-max-w: calc(100vw - var(--gutter) * 2 - 44px - 12px); /* account for back button */
-    --board-size: min(var(--board-max-h), var(--board-max-w));
+    --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
+    --board-size: min(max(280px, var(--board-max-h)), 100%);
     
-    width: var(--board-size);
-    max-width: 320px;
+    width: 100%; /* fill available space in container */
     height: var(--board-size);
-    max-height: var(--board-max-h);
     
-    border-radius: 16px;
+    border-radius: 24px;
     overflow: hidden;
     background: var(--card, #fff);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    padding: 3px; /* inner breathing room */
-    clip-path: inset(0 round 16px); /* ensures no bleed past rounded corners */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 8px; /* inner breathing room */
+    clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
   }
   
   /* Grid/cell drawing */
@@ -274,7 +284,7 @@
   /* Compact keypad docked at bottom — never >25% height */
   .custom-keypad {
     height: calc(var(--keypad-h) + env(safe-area-inset-bottom));
-    padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
     background: var(--card, #fff);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
     border-top-left-radius: 20px;
@@ -289,7 +299,7 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 4px;
+    gap: 8px;
     width: 100%;
     max-width: 400px;
     height: 100%;
@@ -298,10 +308,10 @@
   
   .number-btn {
     aspect-ratio: 1/1;
-    min-height: 32px;
-    max-height: 38px;
-    border-radius: 8px;
-    font-size: 15px;
+    min-height: 40px;
+    max-height: 48px;
+    border-radius: 12px;
+    font-size: 18px;
     font-weight: 600;
     background: #EEF0F6;
     color: #10121A;
@@ -319,10 +329,10 @@
   
   .undo-btn {
     aspect-ratio: 1/1;
-    min-height: 32px;
-    max-height: 38px;
-    border-radius: 8px;
-    font-size: 10px;
+    min-height: 40px;
+    max-height: 48px;
+    border-radius: 12px;
+    font-size: 12px;
     font-weight: 600;
     background: #EEF0F6;
     color: #10121A;
@@ -332,7 +342,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1px;
+    gap: 2px;
   }
   
   .undo-btn:hover {
@@ -353,6 +363,10 @@
   @media (min-width: 641px) {
     :root {
       --keypad-h: clamp(180px, 24vh, 220px);
+    }
+    
+    .game-controls-container {
+      max-width: 500px; /* match tablet keypad max-width */
     }
     
     .keypad-grid {

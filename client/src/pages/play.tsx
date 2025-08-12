@@ -363,7 +363,7 @@ export default function PlayPage() {
           </div>
         </section>
 
-        <aside className="custom-keypad pl-[0px] pr-[0px] pt-[20px] pb-[20px] mt-[0px] mb-[0px] ml-[-16px] mr-[-16px] text-left" aria-label="Number keypad">
+        <aside className="custom-keypad" aria-label="Number keypad">
           <div className="keypad-grid">
             {[1, 2, 3, 4, 5].map((num) => (
               <button
