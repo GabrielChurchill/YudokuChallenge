@@ -4,7 +4,7 @@ Yudoku is a production-grade Sudoku gaming platform built for YuLife conferences
 
 The core gameplay revolves around standard 9×9 Sudoku puzzles with three pre-generated Easy difficulty levels. Players enter their name with consent, solve puzzles with real-time validation, and compete on a live leaderboard. The system includes mistake tracking, hint functionality, and penalty calculations to create engaging competitive gameplay.
 
-**Recent Major Update (Aug 12, 2025)**: Implemented iPad-optimized UX with docked keypad layout, ensuring no scrolling required during gameplay. The keypad is now fixed at the bottom with safe-area padding, and the grid dynamically sizes to fit available viewport space.
+**Recent Major Update (Aug 12, 2025)**: Implemented responsive UX optimization for both iPad and phone devices. iPad maintains the docked custom keypad layout, while phones now use native keyboard input with a compact action bar. The layout automatically adapts based on screen width (≤640px for phones), maximizing grid space and eliminating scrolling during gameplay.
 
 # User Preferences
 
@@ -17,7 +17,7 @@ The application uses a modern React-based frontend built with Vite and TypeScrip
 
 The routing system uses Wouter for client-side navigation between play, leaderboard, and admin sections. State management leverages React Query (TanStack Query) for server state and React hooks for local component state. The application implements a single-page architecture with distinct views for different user roles.
 
-**iPad UX Optimization**: The game interface uses a CSS Grid layout with auto/1fr/auto rows to dock the numeric keypad at the bottom. The layout includes dynamic viewport height support (100dvh + visualViewport API) and safe-area padding to prevent controls from being hidden behind iOS home indicators. All interactive elements meet 44×44px minimum touch target requirements.
+**Responsive UX Design**: The game interface uses adaptive layouts based on device width. iPads (≥641px) maintain the CSS Grid layout with auto/1fr/auto rows and docked numeric keypad at the bottom. Phones (≤640px) hide the custom keypad and use native iOS keyboard input triggered by cell selection, with a compact three-button action bar (Clear/Hint/Stop) fixed at the bottom. The layout includes dynamic viewport height support (visualViewport API) and safe-area padding for iOS compatibility. All interactive elements meet 44×44px minimum touch target requirements.
 
 ## Backend Architecture
 The backend follows a hybrid approach using Express.js for the server foundation with custom route handlers. The server provides RESTful API endpoints for game operations, leaderboard management, and admin functions. Server-Sent Events (SSE) enable real-time leaderboard updates without requiring external WebSocket dependencies.
