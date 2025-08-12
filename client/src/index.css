@@ -181,7 +181,7 @@
   :root {
     --header-h: 84px;
     --gutter: 16px;
-    --keypad-h: clamp(100px, 18vh, 140px); /* More compact keypad */
+    --keypad-h: clamp(90px, 16vh, 120px); /* Ultra compact keypad */
   }
   
   /* Full page uses dynamic viewport to avoid Safari jumps */
@@ -246,21 +246,21 @@
   
   .board-outer {
     /* Choose the largest square that fits both height and width */
-    --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 3);
+    --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 4);
     --board-max-w: calc(100vw - var(--gutter) * 2 - 44px - 12px); /* account for back button */
     --board-size: min(var(--board-max-h), var(--board-max-w));
     
     width: var(--board-size);
-    max-width: 400px;
+    max-width: 320px;
     height: var(--board-size);
     max-height: var(--board-max-h);
     
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
     background: var(--card, #fff);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 4px; /* inner breathing room */
-    clip-path: inset(0 round 20px); /* ensures no bleed past rounded corners */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 3px; /* inner breathing room */
+    clip-path: inset(0 round 16px); /* ensures no bleed past rounded corners */
   }
   
   /* Grid/cell drawing */
@@ -298,10 +298,10 @@
   
   .number-btn {
     aspect-ratio: 1/1;
-    min-height: 36px;
-    max-height: 42px;
-    border-radius: 10px;
-    font-size: 16px;
+    min-height: 32px;
+    max-height: 38px;
+    border-radius: 8px;
+    font-size: 15px;
     font-weight: 600;
     background: #EEF0F6;
     color: #10121A;
@@ -319,10 +319,10 @@
   
   .undo-btn {
     aspect-ratio: 1/1;
-    min-height: 36px;
-    max-height: 42px;
-    border-radius: 10px;
-    font-size: 11px;
+    min-height: 32px;
+    max-height: 38px;
+    border-radius: 8px;
+    font-size: 10px;
     font-weight: 600;
     background: #EEF0F6;
     color: #10121A;
