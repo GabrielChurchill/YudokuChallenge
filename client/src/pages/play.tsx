@@ -16,7 +16,7 @@ import {
   parsePuzzleString, 
   isValidMove, 
   isSudokuComplete, 
-  getHintCell, 
+  getSolutionFromPuzzle, 
   type SudokuGrid as SudokuGridType,
   type CellPosition 
 } from "@/lib/sudoku";
@@ -171,17 +171,30 @@ export default function PlayPage() {
     setGrid(newGrid);
   };
 
-  // Handle hint
+  // Handle hint - provides hint for the currently selected cell
   const handleHint = () => {
-    if (!puzzle) return;
+    if (!puzzle || !selectedCell) return;
     
-    const hintCell = getHintCell(grid, puzzle.puzzleString);
-    if (hintCell) {
-      const { row, col, value } = hintCell;
+    const { row, col } = selectedCell;
+    
+    // Don't provide hints for cells that already have values or are initial cells
+    if (grid[row][col].value || grid[row][col].isInitial) return;
+    
+    // Get the correct value for this specific cell from the solution
+    const solutionString = getSolutionFromPuzzle(puzzle.puzzleString);
+    const solutionIndex = row * 9 + col;
+    const correctValue = parseInt(solutionString[solutionIndex]);
+    
+    if (correctValue) {
       const newGrid = [...grid];
-      newGrid[row][col] = { value, isInitial: false, isValid: true };
+      newGrid[row][col] = { value: correctValue, isInitial: false, isValid: true };
       setGrid(newGrid);
       setHints(prev => prev + 1);
+      
+      // Check if puzzle is complete after hint
+      if (isSudokuComplete(newGrid)) {
+        submitGameMutation.mutate();
+      }
     }
   };
 

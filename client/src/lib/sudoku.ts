@@ -92,7 +92,7 @@ export function getHintCell(grid: SudokuGrid, puzzleString: string): { row: numb
 }
 
 // Helper function to get solution - in a real app, this would be server-side
-function getSolutionFromPuzzle(puzzleString: string): string {
+export function getSolutionFromPuzzle(puzzleString: string): string {
   // This is a simplified mapping for the three known puzzles
   const solutions: Record<string, string> = {
     "4.8.19.6...3764...612..87..2.6...9759..64.82118.9.2..482.4.....7..53......98...16": "478219563593764182612358749246183975937645821185972634821496357764531298359827416",
