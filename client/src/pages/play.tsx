@@ -308,13 +308,6 @@ export default function PlayPage() {
           <div className="board-outer">
             <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
               <div className="flex justify-between items-center text-sm">
-                <Button 
-                  variant="ghost" 
-                  onClick={handleStopGame}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-gray-800 p-2 h-auto"
-                >
-                  <span className="text-lg">←</span>
-                </Button>
                 <div className="text-center">
                   <Timer 
                     startTime={startTime} 
