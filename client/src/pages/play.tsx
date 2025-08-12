@@ -301,63 +301,71 @@ export default function PlayPage() {
 
   // Game Screen
   return (
-    <div className="game-app bg-yulife-soft">
+    <div className="play bg-yulife-soft">
       <Header />
-      <main className="game-board">
-        {/* Game Header - Compact */}
-        <Card className="rounded-2xl shadow-lg mb-4">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <Button 
-                variant="ghost" 
-                onClick={handleStopGame}
-                className="flex items-center space-x-2 text-sm"
-              >
-                <span>← Back</span>
-              </Button>
-              
-              <div className="text-center">
-                <Timer 
-                  startTime={startTime} 
-                  onElapsedChange={setElapsedMs}
-                  mistakes={mistakes}
-                  hints={hints}
-                />
-              </div>
-              
-              <div className="text-right text-xs text-gray-600 space-x-4">
-                <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}</span></span>
-                <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+      <main className="stage">
+        <section className="board-wrap">
+          <div className="board-outer">
+            <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
+              <div className="flex justify-between items-center text-sm">
+                <div className="text-center">
+                  <Timer 
+                    startTime={startTime} 
+                    onElapsedChange={setElapsedMs}
+                    mistakes={mistakes}
+                    hints={hints}
+                  />
+                </div>
+                <div className="text-right text-xs text-gray-600 space-x-3">
+                  <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
+                  <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="sudoku-grid">
+              <SudokuGrid
+                grid={grid}
+                selectedCell={selectedCell}
+                onCellSelect={setSelectedCell}
+              />
+            </div>
+          </div>
+        </section>
 
-        {/* Sudoku Grid - Sized to fit */}
-        <Card className="rounded-2xl shadow-lg game-grid">
-          <CardContent className="p-4">
-            <SudokuGrid
-              grid={grid}
-              selectedCell={selectedCell}
-              onCellSelect={setSelectedCell}
-            />
-          </CardContent>
-        </Card>
+        <aside className="custom-keypad" aria-label="Number keypad">
+          <div className="keys">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                onClick={() => handleNumberInput(num)}
+                aria-label={`Enter number ${num}`}
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+          <div className="actions">
+            <button 
+              className="ghost"
+              onClick={handleClear}
+            >
+              Clear
+            </button>
+            <button 
+              className="primary"
+              onClick={handleHint}
+            >
+              Hint (+30s)
+            </button>
+            <button 
+              className="danger"
+              onClick={handleStopGame}
+            >
+              Stop
+            </button>
+          </div>
+        </aside>
       </main>
-
-      {/* Numeric Keypad - Docked at bottom */}
-      <nav className="game-keypad" aria-label="Number keypad">
-        <Card className="rounded-t-2xl shadow-xl border-0">
-          <CardContent className="p-4">
-            <NumericKeypad
-              onNumberClick={handleNumberInput}
-              onClearClick={handleClear}
-              onHintClick={handleHint}
-              onStopClick={handleStopGame}
-            />
-          </CardContent>
-        </Card>
-      </nav>
     </div>
   );
 }
