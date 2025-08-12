@@ -247,17 +247,19 @@
   .board-outer {
     /* Choose the largest square that fits both height and width */
     --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
-    --board-max-w: calc(100vw - var(--gutter) * 2);
-    --board-size: min(max(340px, var(--board-max-h)), var(--board-max-w));
+    --board-max-w: calc(100vw - var(--gutter) * 2 - 44px - 12px); /* account for back button */
+    --board-size: min(max(300px, var(--board-max-h)), var(--board-max-w));
     
     width: var(--board-size);
+    max-width: 380px;
     height: var(--board-size);
+    max-height: 380px;
     
     border-radius: 24px;
     overflow: hidden;
     background: var(--card, #fff);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 8px; /* inner breathing room */
+    padding: 6px; /* inner breathing room */
     clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
   }
   

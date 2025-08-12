@@ -11,7 +11,7 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
   if (grid.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-9 gap-1 bg-gray-800 p-2 rounded-lg w-full h-full">
+    <div className="grid grid-cols-9 gap-0.5 bg-gray-800 p-1.5 rounded-lg w-full h-full">
       {grid.map((row, rowIndex) =>
         row.map((cell, colIndex) => {
           const isSelected = selectedCell?.row === rowIndex && selectedCell?.col === colIndex;
@@ -24,7 +24,7 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
               className={cn(
                 "bg-white border border-gray-300 flex items-center justify-center font-semibold transition-colors aspect-square",
                 "hover:bg-blue-50 focus:bg-blue-100 focus:ring-2 focus:ring-yulife-indigo focus:outline-none",
-                "text-lg min-h-[44px] min-w-[44px]",
+                "text-base min-h-[36px] min-w-[36px]",
                 isSelected && "bg-blue-100 ring-2 ring-yulife-indigo",
                 cell.isInitial && "bg-gray-100 font-bold",
                 !cell.isValid && !cell.isInitial && "text-red-500",
