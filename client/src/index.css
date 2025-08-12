@@ -176,4 +176,90 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+  
+  /* Game Layout - iPad optimized with docked keypad */
+  .game-app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    min-height: var(--vh, 100dvh);
+    min-height: 100dvh;
+    min-height: 100vh; /* fallback for older browsers */
+  }
+  
+  .game-board {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: 0;
+    overflow: hidden;
+  }
+  
+  .game-grid {
+    display: grid;
+    place-items: center;
+    min-height: 0;
+  }
+  
+  .game-keypad {
+    position: sticky;
+    bottom: 0;
+    background: var(--background);
+    padding: 0 1rem calc(1rem + env(safe-area-inset-bottom)) 1rem;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border);
+  }
+  
+  /* Sudoku Grid Responsive Sizing */
+  .sudoku-grid-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .sudoku-cell {
+    aspect-ratio: 1;
+    font-size: clamp(1rem, 3vw, 1.5rem);
+  }
+  
+  /* Dynamic grid sizing based on available space */
+  @media (min-width: 768px) {
+    .sudoku-grid-container > div {
+      width: min(70vh, 500px);
+      height: min(70vh, 500px);
+    }
+  }
+  
+  @media (max-width: 767px) {
+    .sudoku-grid-container > div {
+      width: min(80vw, 400px);
+      height: min(80vw, 400px);
+    }
+  }
+  
+  /* Responsive adjustments for iPad */
+  @media (max-width: 1024px) {
+    .game-board {
+      padding: 0.75rem;
+      gap: 0.75rem;
+    }
+    
+    .game-keypad {
+      padding: 0 0.75rem calc(0.75rem + env(safe-area-inset-bottom)) 0.75rem;
+    }
+  }
+  
+  /* Ensure grid fits in available space */
+  @media (max-height: 800px) {
+    .sudoku-grid-container > div {
+      width: min(50vh, 400px);
+      height: min(50vh, 400px);
+    }
+    
+    .sudoku-cell {
+      font-size: clamp(0.875rem, 2.5vw, 1.25rem);
+    }
+  }
 }

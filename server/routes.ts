@@ -70,14 +70,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const serverElapsedMs = now.getTime() - existingRun.startedUtc.getTime();
       
       // Anti-tamper check
-      if (Math.abs(serverElapsedMs - validatedData.elapsedMs) > 5000) {
+      if (Math.abs(serverElapsedMs - (validatedData.elapsedMs || 0)) > 5000) {
         console.warn(`Timing anomaly detected for run ${runId}: server=${serverElapsedMs}, client=${validatedData.elapsedMs}`);
       }
       
       // Calculate final time: elapsed + 30s × max(0, mistakes − 3) + 30s × hints
-      const finalMs = validatedData.elapsedMs + 
-                     (Math.max(0, validatedData.mistakes - 3) * 30000) + 
-                     (validatedData.hints * 30000);
+      const finalMs = (validatedData.elapsedMs || 0) + 
+                     (Math.max(0, (validatedData.mistakes || 0) - 3) * 30000) + 
+                     ((validatedData.hints || 0) * 30000);
       
       const updatedRun = await storage.updateRun(runId, {
         ...validatedData,

@@ -4,6 +4,8 @@ Yudoku is a production-grade Sudoku gaming platform built for YuLife conferences
 
 The core gameplay revolves around standard 9×9 Sudoku puzzles with three pre-generated Easy difficulty levels. Players enter their name with consent, solve puzzles with real-time validation, and compete on a live leaderboard. The system includes mistake tracking, hint functionality, and penalty calculations to create engaging competitive gameplay.
 
+**Recent Major Update (Aug 12, 2025)**: Implemented iPad-optimized UX with docked keypad layout, ensuring no scrolling required during gameplay. The keypad is now fixed at the bottom with safe-area padding, and the grid dynamically sizes to fit available viewport space.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -14,6 +16,8 @@ Preferred communication style: Simple, everyday language.
 The application uses a modern React-based frontend built with Vite and TypeScript. The UI is constructed using shadcn/ui components with Radix UI primitives, providing accessible and consistent design patterns. Tailwind CSS handles styling with custom YuLife brand colors and responsive design optimized for iPad landscape viewing.
 
 The routing system uses Wouter for client-side navigation between play, leaderboard, and admin sections. State management leverages React Query (TanStack Query) for server state and React hooks for local component state. The application implements a single-page architecture with distinct views for different user roles.
+
+**iPad UX Optimization**: The game interface uses a CSS Grid layout with auto/1fr/auto rows to dock the numeric keypad at the bottom. The layout includes dynamic viewport height support (100dvh + visualViewport API) and safe-area padding to prevent controls from being hidden behind iOS home indicators. All interactive elements meet 44×44px minimum touch target requirements.
 
 ## Backend Architecture
 The backend follows a hybrid approach using Express.js for the server foundation with custom route handlers. The server provides RESTful API endpoints for game operations, leaderboard management, and admin functions. Server-Sent Events (SSE) enable real-time leaderboard updates without requiring external WebSocket dependencies.

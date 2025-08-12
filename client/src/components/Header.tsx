@@ -18,20 +18,21 @@ export default function Header() {
           </Link>
           
           {/* Navigation */}
-          <nav className="flex items-center space-x-4">
+          <nav className="flex items-center space-x-3">
             <Link href="/leaderboard">
               <Button
                 variant="ghost"
-                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 px-4 py-2 rounded-full flex items-center space-x-2"
+                className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 p-2 rounded-full"
+                aria-label="View Leaderboard"
               >
                 <BarChart3 className="w-5 h-5" />
-                <span>Leaderboard</span>
               </Button>
             </Link>
             <Link href="/admin">
               <Button
                 variant="ghost"
                 className="bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 p-2 rounded-full"
+                aria-label="Admin Settings"
               >
                 <Settings className="w-5 h-5" />
               </Button>

@@ -1,6 +1,6 @@
 import { runs, leaderboardEntries, puzzles, type Run, type InsertRun, type UpdateRun, type LeaderboardEntry, type Puzzle } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, asc } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Run operations
@@ -92,7 +92,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(runs);
   }
 
-  async getPuzzles(): Promise<Puzzle[]> {
+  async getPuzzles(): Promise<Pick<Puzzle, 'id' | 'puzzleString'>[]> {
     return await db.select({ id: puzzles.id, puzzleString: puzzles.puzzleString }).from(puzzles);
   }
 

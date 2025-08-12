@@ -1,0 +1,144 @@
+iPad UX feedback (why this design hurts play + how to fix)
+What’s wrong (from the screenshot)
+Critical controls are below the fold.
+The custom keypad sits off-screen on iPad, so every entry requires a scroll down → tap → scroll up loop. That adds seconds per move, breaks flow, and rewards people with longer arms—not skill.
+
+Tap ≠ type.
+Tapping a cell doesn’t open the iPad keyboard (cells aren’t inputs). Players must move their hand away from the grid every time, which increases errors and fatigue.
+
+Layout doesn’t reserve space for input.
+The grid is sized as if there’s infinite vertical space. On iPad Safari, the browser chrome + potential keyboard reduce the visual viewport, but the app isn’t adapting.
+
+Motor + time penalties.
+Fitts’s Law: repeatedly moving between the top grid and a bottom keypad off-screen increases movement time. In a speed-based contest this is unfair UX.
+
+Two good solutions (choose either or support both)
+Option A — Use the native iPad numeric keyboard
+Convert the focused cell into a real (or hidden) input and focus it on tap to bring up the iOS number pad.
+
+Pros: no custom keypad; auto handles safe areas; hardware keyboard works.
+
+Cons: keyboard covers ~⅓–½ of the screen, so resize the grid when it’s shown.
+
+Implementation notes
+
+html
+Copy
+Edit
+<!-- Hidden input that drives the native number pad -->
+<input id="native-num" type="tel" inputmode="numeric" pattern="[0-9]*"
+  style="position:fixed;opacity:0;pointer-events:none;left:-9999px;" />
+ts
+Copy
+Edit
+// On cell tap (must be the same user gesture to allow focus on iOS)
+const hidden = document.getElementById('native-num') as HTMLInputElement;
+let activeCell: Cell | null = null;
+
+grid.addEventListener('pointerdown', (e) => {
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+  activeCell = cell;
+  hidden.value = '';
+  hidden.focus({ preventScroll: true }); // opens number pad on iPad
+});
+
+// Insert last typed digit into the active cell
+hidden.addEventListener('input', () => {
+  const v = hidden.value.slice(-1);
+  if (/[1-9]/.test(v) && activeCell) placeDigit(activeCell, Number(v));
+  if (v === '0' && activeCell) clearCell(activeCell); // optional
+  hidden.value = '';
+});
+
+// Hardware keyboard support (nice to have)
+window.addEventListener('keydown', (e) => {
+  if (e.key >= '1' && e.key <= '9' && activeCell) placeDigit(activeCell, Number(e.key));
+  if (e.key === 'Backspace' && activeCell) clearCell(activeCell);
+});
+Resize for keyboard (iOS 16+):
+
+ts
+Copy
+Edit
+const fit = () => {
+  const vh = window.visualViewport?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+};
+window.visualViewport?.addEventListener('resize', fit);
+window.addEventListener('resize', fit);
+fit();
+css
+Copy
+Edit
+/* Use dynamic viewport so grid + header adjust when keyboard shows */
+.app { height: calc(var(--vh)); }
+Option B — Keep the custom keypad, but dock it (never scroll)
+Make the keypad fixed to the bottom of the screen with safe-area padding.
+
+Size the grid so both grid and keypad are on screen at all times.
+
+Layout pattern
+
+html
+Copy
+Edit
+<body class="app">
+  <header>…</header>
+  <main id="board"></main>
+  <nav id="keypad" aria-label="Number keypad">…</nav>
+</body>
+css
+Copy
+Edit
+/* Use dynamic viewport units to avoid Safari URL bar jumps */
+.app { display:grid; grid-template-rows:auto 1fr auto; height:100dvh; }
+
+/* Fixed/docked keypad with safe-area padding */
+#keypad {
+  position: sticky; bottom: 0; /* or position: fixed; left:0; right:0; bottom:0; */
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--card);
+  box-shadow: 0 -8px 24px rgba(0,0,0,.08);
+}
+
+/* Ensure the board never overflows under the keypad */
+#board { min-height: 0; overflow: hidden; display:grid; place-items:center; }
+Touch targets
+
+Buttons ≥ 56×56px, 12px gaps (per your style guide).
+
+Respect env(safe-area-inset-bottom) so nothing is hidden behind the home indicator.
+
+Smaller fixes (do regardless)
+Shrink header & outer margins on iPad; spend pixels on grid + input.
+
+Keep timer and mistakes in a single compact row above the grid.
+
+Don’t require any vertical scroll on /play. If content overflows, scale the grid down slightly to fit 100dvh.
+
+Focus rings + key hints: on cell focus, show a subtle outline and the currently allowed keys.
+
+Error state: wrong digit stays red (as specced) but do not push layout when showing toasts.
+
+Acceptance tests (what “done” looks like on iPad 10–13″, Safari)
+No-scroll gameplay: From Start to Finish, a user can enter all 81 digits without ever scrolling.
+
+Tap-to-type: Tapping a cell immediately opens the numeric input method (native keyboard or visible custom keypad).
+
+View stability: Rotating between landscape/portrait keeps grid + input visible (uses 100dvh/visualViewport).
+
+Safe areas: No control sits under the home indicator; keypad has bottom padding = env(safe-area-inset-bottom).
+
+Speed sanity check: Enter digits 1…9 across a row in < 3 seconds using either method.
+
+Hardware keyboard: Pressing keys 1–9 fills the focused cell; Backspace clears it.
+
+A11y: All interactive targets ≥ 44×44px; focus outline visible; VoiceOver reads “Row X, Column Y”.
+
+TL;DR for Replit
+The keypad being below the fold makes the current design slow and frustrating on iPad.
+
+Fix by either (A) triggering the native number pad on cell tap, or (B) docking the custom keypad so it’s always on screen.
+
+Use dynamic viewport (100dvh + visualViewport) and safe-area padding so the layout adapts when the keyboard appears.

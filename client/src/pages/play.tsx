@@ -301,17 +301,17 @@ export default function PlayPage() {
 
   // Game Screen
   return (
-    <div className="min-h-screen bg-yulife-soft">
+    <div className="game-app bg-yulife-soft">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Game Header */}
-        <Card className="rounded-2xl shadow-lg mb-6">
-          <CardContent className="p-6">
+      <main className="game-board">
+        {/* Game Header - Compact */}
+        <Card className="rounded-2xl shadow-lg mb-4">
+          <CardContent className="p-4">
             <div className="flex justify-between items-center">
               <Button 
                 variant="ghost" 
                 onClick={handleStopGame}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 text-sm"
               >
                 <span>← Back</span>
               </Button>
@@ -325,21 +325,17 @@ export default function PlayPage() {
                 />
               </div>
               
-              <div className="text-right">
-                <div className="text-sm text-gray-600">
-                  Mistakes: <span className="font-semibold text-red-500">{mistakes}</span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  Hints: <span className="font-semibold text-yulife-indigo">{hints}</span>
-                </div>
+              <div className="text-right text-xs text-gray-600 space-x-4">
+                <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}</span></span>
+                <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Sudoku Grid */}
-        <Card className="rounded-2xl shadow-lg mb-6">
-          <CardContent className="p-6">
+        {/* Sudoku Grid - Sized to fit */}
+        <Card className="rounded-2xl shadow-lg game-grid">
+          <CardContent className="p-4">
             <SudokuGrid
               grid={grid}
               selectedCell={selectedCell}
@@ -347,10 +343,12 @@ export default function PlayPage() {
             />
           </CardContent>
         </Card>
+      </main>
 
-        {/* Numeric Keypad */}
-        <Card className="rounded-2xl shadow-lg">
-          <CardContent className="p-6">
+      {/* Numeric Keypad - Docked at bottom */}
+      <nav className="game-keypad" aria-label="Number keypad">
+        <Card className="rounded-t-2xl shadow-xl border-0">
+          <CardContent className="p-4">
             <NumericKeypad
               onNumberClick={handleNumberInput}
               onClearClick={handleClear}
@@ -359,7 +357,7 @@ export default function PlayPage() {
             />
           </CardContent>
         </Card>
-      </main>
+      </nav>
     </div>
   );
 }
