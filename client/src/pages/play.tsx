@@ -333,35 +333,34 @@ export default function PlayPage() {
         </section>
 
         <aside className="custom-keypad" aria-label="Number keypad">
-          <div className="keys">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+          <div className="keypad-grid">
+            {[1, 2, 3, 4, 5].map((num) => (
               <button
                 key={num}
+                className="number-btn"
                 onClick={() => handleNumberInput(num)}
                 aria-label={`Enter number ${num}`}
               >
                 {num}
               </button>
             ))}
-          </div>
-          <div className="actions">
+            {[6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                className="number-btn"
+                onClick={() => handleNumberInput(num)}
+                aria-label={`Enter number ${num}`}
+              >
+                {num}
+              </button>
+            ))}
             <button 
-              className="ghost"
+              className="undo-btn"
               onClick={handleClear}
+              aria-label="Undo last entry"
             >
-              Clear
-            </button>
-            <button 
-              className="primary"
-              onClick={handleHint}
-            >
-              Hint (+30s)
-            </button>
-            <button 
-              className="danger"
-              onClick={handleStopGame}
-            >
-              Stop
+              <div className="undo-icon">↶</div>
+              <div className="undo-text">Undo</div>
             </button>
           </div>
         </aside>
