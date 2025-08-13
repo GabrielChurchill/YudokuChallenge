@@ -258,7 +258,7 @@
     /* Available width = viewport width - horizontal gutters */
     --avail-w: calc(100vw - var(--gutter) * 2);
     /* The board is the biggest square that fits both dimensions */
-    --board-size: min(max(450px, var(--avail-h)), var(--avail-w));
+    --board-size: min(max(500px, var(--avail-h)), var(--avail-w));
     
     width: var(--board-size);
     height: var(--board-size);
