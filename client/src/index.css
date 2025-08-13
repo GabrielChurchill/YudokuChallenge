@@ -208,12 +208,16 @@
   
   /* Square board sized by remaining space above the keypad */
   .board-wrap {
+    width: 100%;
+    height: 100%;
     display: grid;
     place-items: center;
     min-height: 0; /* critical for preventing overflow clamping */
   }
   
   .game-controls-container {
+    width: 100%;
+    max-width: 100%;
     display: flex;
     align-items: flex-start;
     gap: 12px;
@@ -233,6 +237,7 @@
     justify-content: center;
     transition: all 0.2s ease;
     margin-top: 8px;
+    flex-shrink: 0; /* Prevent button from shrinking */
   }
   
   .back-button:hover {
@@ -253,11 +258,11 @@
   
   .board-outer {
     /* Available height = viewport - header - keypad - vertical gutters */
-    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - 200px - var(--gutter) * 2); /* Use fixed 200px for board calculation */
+    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - 180px - var(--gutter) * 2); /* Reduced keypad height for more board space */ /* Use fixed 200px for board calculation */
     /* Available width = viewport width - horizontal gutters */
     --avail-w: calc(100vw - var(--gutter) * 2);
     /* The board is the biggest square that fits both dimensions */
-    --board-size: min(max(340px, var(--avail-h)), var(--avail-w));
+    --board-size: min(max(400px, var(--avail-h)), var(--avail-w));
     
     width: var(--board-size);
     height: var(--board-size);
@@ -266,12 +271,15 @@
     overflow: hidden;
     background: var(--card, #fff);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 8px; /* inner breathing room */
+    padding: 12px; /* Increased padding for better grid visibility */ /* inner breathing room */
     clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
   }
   
   /* Grid/cell drawing */
   .sudoku-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     height: 100%;
     border-radius: inherit;
