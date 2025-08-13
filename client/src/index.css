@@ -176,7 +176,6 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
-}
   
   /* Core layout variables for phone optimization */
   :root {
@@ -253,23 +252,22 @@
   }
   
   .board-outer {
-    /* Account for game header (64px), back button area (60px), and safety margin (20px) */
-    --game-ui-h: 144px;
-    /* Available height = viewport - app header - keypad - game UI - safety margins */
-    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - var(--keypad-h) - var(--game-ui-h) - 40px);
-    /* Available width = viewport width - horizontal gutters and safety */
-    --avail-w: calc(100vw - 80px);
-    /* The board is the biggest square that fits both dimensions, minimum 280px */
-    --board-size: min(max(280px, var(--avail-h)), var(--avail-w));
+    /* Available height = viewport - header - keypad - vertical gutters */
+    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
+    /* Available width = viewport width - horizontal gutters */
+    --avail-w: calc(100vw - var(--gutter) * 2);
+    /* The board is the biggest square that fits both dimensions */
+    --board-size: min(max(340px, var(--avail-h)), var(--avail-w));
     
     width: var(--board-size);
     height: var(--board-size);
     
-    border-radius: 16px;
+    border-radius: 24px;
     overflow: hidden;
     background: var(--card, #fff);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    padding: 4px; /* minimal inner padding */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    padding: 8px; /* inner breathing room */
+    clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
   }
   
   /* Grid/cell drawing */
@@ -286,6 +284,8 @@
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     background: var(--card, #fff);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     display: flex;
@@ -358,7 +358,33 @@
     line-height: 1;
   }
   
-  /* Remove conflicting tablet keypad height - use the main iPad breakpoint instead */
+  /* Tablets (≥641px): slightly taller keypad for iPad but still compact */
+  @media (min-width: 641px) {
+    :root {
+      --keypad-h: clamp(180px, 24vh, 220px);
+    }
+    
+    .keypad-grid {
+      max-width: 500px;
+    }
+    
+    .number-btn, .undo-btn {
+      min-height: 44px;
+      max-height: 52px;
+    }
+    
+    .number-btn {
+      font-size: 20px;
+    }
+    
+    .undo-icon {
+      font-size: 18px;
+    }
+    
+    .undo-text {
+      font-size: 12px;
+    }
+  }
   
   /* Desktop/large screens: allow bigger boards but keep compact keypad */
   @media (min-width: 1025px) {
@@ -393,3 +419,4 @@
       font-size: 14px;
     }
   }
+}
