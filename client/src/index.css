@@ -181,13 +181,13 @@
   :root {
     --header-h: 84px;
     --gutter: 16px;
-    --keypad-h: clamp(180px, 28vh, 240px); /* 25-30% of viewport for phones */
+    --keypad-h: auto; /* Let keypad size naturally based on content */
   }
   
   /* iPad gets slightly taller keypad */
   @media (min-width: 768px) {
     :root {
-      --keypad-h: clamp(220px, 26vh, 300px);
+      --keypad-h: auto; /* Let keypad size naturally based on content */
     }
   }
   
@@ -253,7 +253,7 @@
   
   .board-outer {
     /* Available height = viewport - header - keypad - vertical gutters */
-    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
+    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - 200px - var(--gutter) * 2); /* Use fixed 200px for board calculation */
     /* Available width = viewport width - horizontal gutters */
     --avail-w: calc(100vw - var(--gutter) * 2);
     /* The board is the biggest square that fits both dimensions */
@@ -278,9 +278,9 @@
     border-collapse: collapse;
   }
   
-  /* Compact keypad docked at bottom — never >30% height */
+  /* Compact keypad docked at bottom — size naturally based on content */
   .custom-keypad {
-    height: calc(var(--keypad-h) + env(safe-area-inset-bottom));
+    min-height: fit-content;
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     background: var(--card, #fff);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
@@ -297,11 +297,10 @@
   .keypad-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(2, 1fr);
+    grid-template-rows: repeat(2, auto);
     gap: 8px;
     width: 100%;
     max-width: 400px;
-    height: 100%;
     align-items: center;
   }
   
@@ -361,11 +360,12 @@
   /* Tablets (≥641px): slightly taller keypad for iPad but still compact */
   @media (min-width: 641px) {
     :root {
-      --keypad-h: clamp(180px, 24vh, 220px);
+      --keypad-h: auto; /* Let keypad size naturally based on content */
     }
     
     .keypad-grid {
       max-width: 500px;
+      grid-template-rows: repeat(2, auto);
     }
     
     .number-btn, .undo-btn {
@@ -389,17 +389,18 @@
   /* Desktop/large screens: allow bigger boards but keep compact keypad */
   @media (min-width: 1025px) {
     :root {
-      --keypad-h: clamp(200px, 22vh, 240px);
+      --keypad-h: auto; /* Let keypad size naturally based on content */
     }
     
     .board-outer {
-      --board-max-h: calc(100dvh - var(--header-h) - var(--keypad-h) - var(--gutter) * 2);
+      --board-max-h: calc(100dvh - var(--header-h) - 200px - var(--gutter) * 2); /* Use fixed 200px for board calculation */
       --board-max-w: calc(100vw - var(--gutter) * 2);
       --board-size: min(max(400px, var(--board-max-h)), min(600px, var(--board-max-w)));
     }
     
     .keypad-grid {
       max-width: 600px;
+      grid-template-rows: repeat(2, auto);
     }
     
     .number-btn, .undo-btn {
