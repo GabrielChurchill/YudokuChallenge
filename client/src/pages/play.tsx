@@ -308,37 +308,37 @@ export default function PlayPage() {
   // WELCOME SCREEN - This is what players see when they first arrive
   if (gameState === 'welcome') {
     return (
-      <div className="min-h-screen bg-yulife-soft">  {/* This makes the background a soft color */}
-        <Header />  {/* Show the navigation bar at the top */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">  {/* Center the content */}
-          <div className="max-w-md mx-auto">  {/* Make the form not too wide */}
-            <Card className="rounded-3xl shadow-xl">  {/* Create a nice-looking card */}
-              <CardContent className="p-8 text-center">  {/* Put content inside the card */}
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Play Sudoku</h1>  {/* Big title */}
-                <p className="text-gray-600 mb-8">Enter your details to start playing</p>  {/* Instructions */}
+      <div className="min-h-screen bg-yulife-soft">
+        <Header />
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="max-w-md mx-auto">
+            <Card className="rounded-3xl shadow-xl">
+              <CardContent className="p-8 text-center">
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Play Sudoku</h1>
+                <p className="text-gray-600 mb-8">Enter your details to start playing</p>
                 
-                {/* This is where players enter their name */}
+              
                 <div className="mb-6">
                   <Input
                     type="text"
                     placeholder="Your name"
                     value={playerName}
-                    onChange={(e) => setPlayerName(e.target.value)}  {/* Remember what they type */}
-                    maxLength={30}  {/* Don't let them type more than 30 characters */}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    maxLength={30}
                     className="w-full px-4 py-3 rounded-2xl border-2 text-lg"
                   />
-                  {/* Show how many characters they've typed */}
+                
                   <div className="text-sm text-gray-500 mt-2 text-left">
                     <span>{playerName.length}</span>/30 characters
                   </div>
                 </div>
 
-                {/* This is the checkbox for agreeing to be on the leaderboard */}
+              
                 <div className="mb-8">
                   <label className="flex items-start space-x-3 text-left cursor-pointer">
                     <Checkbox
                       checked={consent}
-                      onCheckedChange={(checked) => setConsent(checked as boolean)}  {/* Remember their choice */}
+                      onCheckedChange={(checked) => setConsent(checked as boolean)}
                       className="mt-1"
                     />
                     <span className="text-gray-700">
@@ -347,13 +347,13 @@ export default function PlayPage() {
                   </label>
                 </div>
 
-                {/* This is the button to start the game */}
+              
                 <Button
-                  onClick={() => startGameMutation.mutate()}  {/* Start the game when clicked */}
-                  disabled={!isFormValid || startGameMutation.isPending}  {/* Only enable if form is ready */}
+                  onClick={() => startGameMutation.mutate()}
+                  disabled={!isFormValid || startGameMutation.isPending}
                   className="w-full py-4 px-6 rounded-2xl font-semibold text-lg bg-yulife-indigo hover:bg-yulife-purple"
                 >
-                  {startGameMutation.isPending ? 'Starting...' : 'Start ▶'}  {/* Show different text while loading */}
+                  {startGameMutation.isPending ? 'Starting...' : 'Start ▶'}
                 </Button>
               </CardContent>
             </Card>
@@ -372,14 +372,14 @@ export default function PlayPage() {
           <div className="max-w-md mx-auto">
             <Card className="rounded-3xl shadow-xl">
               <CardContent className="p-8 text-center">
-                <div className="text-6xl mb-4">🎉</div>  {/* Celebration emoji */}
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">Great job!</h2>  {/* Congratulations */}
-                <div className="text-5xl font-bold text-yulife-indigo mb-6 tabular-nums">  {/* Show their time in big numbers */}
+                <div className="text-6xl mb-4">🎉</div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Great job!</h2>
+                <div className="text-5xl font-bold text-yulife-indigo mb-6 tabular-nums">
                   {finalTime}
                 </div>
-                <p className="text-gray-600 mb-8">Your time is on the leaderboard!</p>  {/* Let them know their result is saved */}
+                <p className="text-gray-600 mb-8">Your time is on the leaderboard!</p>
                 
-                {/* Button to play again */}
+              
                 <Button
                   onClick={handlePlayAgain}
                   className="w-full py-4 px-6 rounded-2xl font-semibold text-lg bg-yulife-indigo hover:bg-yulife-purple"
@@ -397,43 +397,43 @@ export default function PlayPage() {
   // GAME SCREEN - This is the actual Sudoku game
   // If we get here, the player is actively playing
   return (
-    <div className="play bg-yulife-soft">  {/* This is the main game container */}
-      <Header />  {/* Show the navigation bar */}
-      <main className="stage">  {/* This contains the game board and controls */}
-        <section className="board-wrap">  {/* This wraps the Sudoku board */}
-          <div className="game-controls-container">  {/* This contains the game controls */}
-            {/* Button to go back to the welcome screen */}
+    <div className="play bg-yulife-soft">
+      <Header />
+      <main className="stage">
+        <section className="board-wrap">
+          <div className="game-controls-container">
+          
             <button 
               onClick={handleStopGame}
               className="back-button"
-              aria-label="Go back"  {/* This helps screen readers understand the button */}
+              aria-label="Go back"
             >
               ←
             </button>
-            <div className="board-outer">  {/* This contains the actual Sudoku board */}
-              {/* This shows game information like timer, mistakes, and hints */}
+            <div className="board-outer">
+            
               <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
                 <div className="flex justify-between items-center text-sm">
                   <div className="text-center">
-                    {/* This shows the timer and tracks mistakes and hints */}
+                  
                     <Timer 
-                      startTime={startTime}  {/* When they started */}
-                      onElapsedChange={setElapsedMs}  {/* Update the elapsed time */}
-                      mistakes={mistakes}  {/* How many mistakes they've made */}
-                      hints={hints}  {/* How many hints they've used */}
+                      startTime={startTime}
+                      onElapsedChange={setElapsedMs}
+                      mistakes={mistakes}
+                      hints={hints}
                     />
                   </div>
                   <div className="text-right text-xs text-gray-600 space-x-3">
-                    {/* Show how many mistakes they've made (they can make up to 3) */}
+                  
                     <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
                     
-                    {/* Show a hint button if they have a cell selected and it's empty */}
+                  
                     {selectedCell && !grid[selectedCell.row]?.[selectedCell.col]?.value ? (
                       <button
                         onClick={handleHint}
                         className="hint-button bg-yulife-indigo hover:bg-yulife-purple text-white px-2 py-1 rounded text-xs font-semibold transition-colors"
                       >
-                        Get Hint (+30s)  {/* Using a hint adds 30 seconds to their time */}
+                        Get Hint (+30s)
                       </button>
                     ) : (
                       /* Show how many hints they've used */
@@ -443,34 +443,34 @@ export default function PlayPage() {
                 </div>
               </div>
               
-              {/* This is the actual Sudoku grid where players place numbers */}
+            
               <div className="sudoku-grid">
                 <SudokuGrid
-                  grid={grid}  {/* The current state of the puzzle */}
-                  selectedCell={selectedCell}  {/* Which cell they've clicked on */}
-                  onCellSelect={setSelectedCell}  {/* Remember which cell they selected */}
+                  grid={grid}
+                  selectedCell={selectedCell}
+                  onCellSelect={setSelectedCell}
                 />
               </div>
             </div>
           </div>
         </section>
 
-        {/* This is the number keypad on the right side (or bottom on mobile) */}
+      
         <aside className="custom-keypad" aria-label="Number keypad">
           <div className="keypad-grid">
-            {/* Show numbers 1-5 in the first row */}
+          
             {[1, 2, 3, 4, 5].map((num) => (
               <button
-                key={num}  {/* Each button needs a unique identifier */}
+                key={num}
                 className="number-btn"
-                onClick={() => handleNumberInput(num)}  {/* When clicked, enter this number */}
-                aria-label={`Enter number ${num}`}  {/* Help screen readers understand */}
+                onClick={() => handleNumberInput(num)}
+                aria-label={`Enter number ${num}`}
               >
                 {num}
               </button>
             ))}
             
-            {/* Show numbers 6-9 in the second row */}
+          
             {[6, 7, 8, 9].map((num) => (
               <button
                 key={num}
@@ -482,14 +482,14 @@ export default function PlayPage() {
               </button>
             ))}
             
-            {/* This is the undo button to clear the last entry */}
+          
             <button 
               className="undo-btn"
-              onClick={handleClear}  {/* When clicked, clear the selected cell */}
+              onClick={handleClear}
               aria-label="Undo last entry"
             >
-              <div className="undo-icon">↶</div>  {/* Undo symbol */}
-              <div className="undo-text">Undo</div>  {/* Text label */}
+              <div className="undo-icon">↶</div>
+              <div className="undo-text">Undo</div>
             </button>
           </div>
         </aside>
