@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yudoku Board Sizing Test</title>
+    <style>
+        /* Import Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* CSS Variables */
+        :root {
+            --vh: 1vh;
+            --header-h: 84px;
+            --gutter: 16px;
+            --board-size: 420px;
+            --yulife-purple: hsl(251, 91%, 68%);
+            --yulife-pink: hsl(328, 86%, 67%);
+            --yulife-teal: hsl(188, 94%, 43%);
+            --yulife-indigo: hsl(245, 84%, 63%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, hsl(251, 91%, 95%) 0%, hsl(328, 86%, 95%) 50%, hsl(188, 94%, 95%) 100%);
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--yulife-purple) 0%, var(--yulife-pink) 50%, var(--yulife-teal) 100%);
+            padding: 1rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            height: var(--header-h);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-circle {
+            background: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--yulife-indigo);
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        
+        /* Main layout */
+        .play {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            height: calc(var(--vh, 1vh) * 100);
+            overflow: hidden;
+        }
+        
+        /* Stage = board (1fr) + keypad (auto). Height uses dynamic viewport var. */
+        .stage {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            height: calc(calc(var(--vh, 1vh) * 100) - var(--header-h, 84px));
+            overflow: hidden; /* prevents overlap/cropping */
+        }
+        
+        /* CRITICAL: allow the board to shrink inside its grid area */
+        .board-wrap {
+            display: grid;
+            place-items: center;
+            min-height: 0;
+        }
+        
+        /* Board is a perfect square driven by --board-size */
+        .board-outer {
+            width: var(--board-size, 420px);
+            height: var(--board-size, 420px);
+            
+            border-radius: 24px;
+            overflow: hidden;                 /* clip inside the curve */
+            clip-path: inset(0 round 24px);   /* extra safety */
+            background: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Game header */
+        .game-header {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            margin: 8px;
+            flex-shrink: 0;
+        }
+        
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .stats {
+            color: #6b7280;
+            font-size: 12px;
+        }
+        
+        /* The grid fills the remaining space */
+        .sudoku-grid {
+            flex: 1;
+            margin: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* Grid container - matches original styling */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            background: #374151;
+            padding: 2px;
+            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+        }
+        
+
+        
+        /* Grid cell - matches original styling */
+        .grid-cell {
+            background: white;
+            border: 1px solid #d1d5db; /* Re-add thin borders for horizontal lines */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            color: #374151;
+            aspect-ratio: 1;
+            min-height: 44px;
+            min-width: 44px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        
+        .grid-cell:hover {
+            background: #eff6ff;
+        }
+        
+        .grid-cell:focus {
+            background: #dbeafe;
+            outline: none;
+            ring: 2px;
+            ring-color: var(--yulife-indigo);
+        }
+        
+        .grid-cell.initial {
+            background: #f3f4f6;
+            font-weight: bold;
+        }
+        
+        .grid-cell.selected {
+            background: #dbeafe;
+            ring: 2px;
+            ring-color: var(--yulife-indigo);
+        }
+        
+        .grid-cell.invalid {
+            color: #ef4444;
+        }
+        
+
+        
+        /* Thick borders for 3x3 box divisions - simple border approach */
+        .grid-container .grid-cell[data-row="2"],
+        .grid-container .grid-cell[data-row="5"],
+        .grid-container .grid-cell[data-row="8"] {
+            border-bottom: 3px solid #374151 !important;
+        }
+        
+        .grid-container .grid-cell[data-col="2"],
+        .grid-container .grid-cell[data-col="5"] {
+            border-right: 3px solid #374151 !important;
+        }
+        
+
+        
+        /* Keypad */
+        .custom-keypad {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background: white;
+            box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            flex-shrink: 0;
+            min-height: fit-content;
+        }
+        
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+            align-items: center;
+        }
+        
+        .number-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            min-height: 40px;
+            max-height: 48px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            background: #EEF0F6;
+            color: #10121A;
+            border: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .number-btn:hover {
+            background: hsl(255, 48%, 48%);
+            color: white;
+        }
+        
+        .undo-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            min-height: 40px;
+            max-height: 48px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #EEF0F6;
+            color: #10121A;
+            border: none;
+            transition: all 0.2s ease;
+            gap: 2px;
+            cursor: pointer;
+        }
+        
+        .undo-btn:hover {
+            background: #E0E4EA;
+        }
+        
+        .undo-icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .undo-text {
+            font-size: 10px;
+            line-height: 1;
+        }
+        
+        /* Test info */
+        .test-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .board-size-info {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-info">
+        Viewport: <span id="viewport-info">Loading...</span>
+    </div>
+    <div class="board-size-info">
+        Board Size: <span id="board-size-info">Loading...</span>
+    </div>
+    
+    <div class="play">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-circle">yu</div>
+                <span style="font-size: 1.25rem; font-weight: 600;">Yudoku</span>
+            </div>
+            <div style="display: flex; gap: 0.75rem;">
+                <button style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer;">📊</button>
+                <button style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer;">⚙️</button>
+            </div>
+        </header>
+        
+        <main class="stage">
+            <section class="board-wrap">
+                <div class="board-outer">
+                    <div class="game-header">
+                        <div>
+                            <div class="timer">00:45</div>
+                            <div class="stats">mm:ss</div>
+                        </div>
+                        <div class="stats">
+                            Mistakes: <span style="color: #ef4444; font-weight: 600;">0/3</span><br>
+                            Hints: <span style="color: var(--yulife-indigo); font-weight: 600;">0</span>
+                        </div>
+                    </div>
+                    <div class="sudoku-grid">
+                        <div class="grid-container" id="sudoku-grid">
+                            <!-- Grid will be generated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <aside class="custom-keypad">
+                <div class="keypad-grid">
+                    <button class="number-btn">1</button>
+                    <button class="number-btn">2</button>
+                    <button class="number-btn">3</button>
+                    <button class="number-btn">4</button>
+                    <button class="number-btn">5</button>
+                    <button class="number-btn">6</button>
+                    <button class="number-btn">7</button>
+                    <button class="number-btn">8</button>
+                    <button class="number-btn">9</button>
+                    <button class="undo-btn">
+                        <div class="undo-icon">↶</div>
+                        <div class="undo-text">Undo</div>
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+    
+    <script>
+        // Dynamic viewport height handling
+        function updateViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+            
+            // Update viewport info
+            const viewportInfo = document.getElementById('viewport-info');
+            viewportInfo.textContent = `${window.innerWidth}×${window.innerHeight} (${vh.toFixed(2)}vh)`;
+        }
+        
+        // Board sizing logic (simplified version of the React hook)
+        function sizeBoard() {
+            const root = document.documentElement;
+            const stage = document.querySelector(".stage");
+            const keypad = document.querySelector(".custom-keypad");
+            const header = document.querySelector(".header");
+            
+            if (!stage || !keypad || !header) return;
+            
+            const getViewportH = () => window.visualViewport?.height ?? window.innerHeight;
+            
+            // Measure real header and keypad heights
+            const headerH = header.offsetHeight;
+            const keypadH = keypad.offsetHeight;
+            
+            // Space available for the square (height & width)
+            const viewportH = getViewportH();
+            const stageH = viewportH - headerH;
+            const availH = stageH - keypadH - 2 * 16; // 16px gutters
+            const availW = window.innerWidth - 2 * 16; // 16px gutters
+            
+            // The board is the largest square that fits
+            const boardSize = Math.min(availH, availW);
+            
+            // Set the board size CSS variable
+            root.style.setProperty("--board-size", `${boardSize}px`);
+            
+            // Update board size info
+            const boardSizeInfo = document.getElementById('board-size-info');
+            boardSizeInfo.textContent = `${boardSize}px (${availH}×${availW})`;
+            
+            // Debug info
+            console.log('Board sizing:', {
+                viewportH,
+                headerH,
+                stageH,
+                keypadH,
+                availH,
+                availW,
+                boardSize
+            });
+        }
+        
+        // Initial setup
+        updateViewportHeight();
+        sizeBoard();
+        
+        // Update on resize and orientation change
+        const handleResize = () => {
+            updateViewportHeight();
+            sizeBoard();
+        };
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleResize, 100);
+        });
+        
+        // Update on visual viewport changes (mobile browsers)
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        }
+        
+        // Sample Sudoku puzzle data
+        const samplePuzzle = [
+            [4, null, null, null, 8, null, null, null, 6],
+            [null, 7, null, null, null, null, null, 9, null],
+            [null, null, 2, null, null, null, null, null, null],
+            [8, null, null, 4, null, null, null, null, 7],
+            [null, 6, null, null, null, null, null, 2, null],
+            [null, null, null, null, null, 1, null, null, null],
+            [null, null, null, null, null, null, 5, null, null],
+            [null, 9, null, null, null, null, null, null, null],
+            [7, null, null, null, 3, null, null, null, 4]
+        ];
+        
+        // Generate the Sudoku grid
+        function generateGrid() {
+            const gridContainer = document.getElementById('sudoku-grid');
+            gridContainer.innerHTML = '';
+            
+            for (let row = 0; row < 9; row++) {
+                for (let col = 0; col < 9; col++) {
+                    const cell = document.createElement('button');
+                    cell.className = 'grid-cell';
+                    cell.setAttribute('data-row', row);
+                    cell.setAttribute('data-col', col);
+                    
+                    const value = samplePuzzle[row][col];
+                    if (value !== null) {
+                        cell.textContent = value;
+                        cell.classList.add('initial');
+                    }
+                    
+                    // CSS handles thick borders via data attributes
+                    // No JavaScript needed for borders - CSS selectors handle it
+                    
+                    cell.addEventListener('click', function() {
+                        // Remove selection from all cells
+                        document.querySelectorAll('.grid-cell').forEach(c => c.classList.remove('selected'));
+                        // Add selection to clicked cell
+                        this.classList.add('selected');
+                    });
+                    
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+        
+        // Initialize the grid
+        generateGrid();
+        
+        // Add number button functionality
+        document.querySelectorAll('.number-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const selectedCell = document.querySelector('.grid-cell.selected');
+                if (selectedCell && !selectedCell.classList.contains('initial')) {
+                    selectedCell.textContent = this.textContent;
+                    selectedCell.style.color = '#10b981';
+                }
+            });
+        });
+        
+        // Add undo button functionality
+        document.querySelector('.undo-btn').addEventListener('click', function() {
+            const selectedCell = document.querySelector('.grid-cell.selected');
+            if (selectedCell && !selectedCell.classList.contains('initial')) {
+                selectedCell.textContent = '';
+                selectedCell.style.color = '';
+            }
+        });
+    </script>
+</body>
+</html>

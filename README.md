@@ -35,16 +35,19 @@ A production-grade Sudoku gaming platform built for YuLife conferences, featurin
 - **Anti-tamper detection** comparing server vs client elapsed times
 - **Server-side validation** and timestamp recording
 - **Real-time updates** without external WebSocket dependencies
+- **Comprehensive testing** with Vitest and React Testing Library
+- **Type-safe development** with TypeScript and Zod validation
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14+ with App Router, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes with Express server
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth with Google OAuth provider
+- **Frontend**: React 18+ with Vite, TypeScript, Tailwind CSS
+- **Backend**: Express.js server with TypeScript
+- **Database**: PostgreSQL with Drizzle ORM
+- **Authentication**: Google OAuth with Passport.js
 - **Real-time**: Server-Sent Events (SSE)
 - **Validation**: Zod for input validation
 - **UI**: shadcn/ui components with YuLife brand styling
+- **Testing**: Vitest with React Testing Library
 
 ## Setup Instructions
 
@@ -78,6 +81,22 @@ A production-grade Sudoku gaming platform built for YuLife conferences, featurin
 3. Start development server:
    ```bash
    pnpm dev
+   ```
+
+### Testing
+1. Run the test suite:
+   ```bash
+   npm test
+   ```
+
+2. Run tests in watch mode:
+   ```bash
+   npm run test:ui
+   ```
+
+3. Run tests once with coverage:
+   ```bash
+   npm run test:coverage
    ```
 
 The application will be available at `http://localhost:5000`

@@ -182,6 +182,7 @@
     --header-h: 84px;
     --gutter: 16px;
     --keypad-h: auto; /* Let keypad size naturally based on content */
+    --vh: 1vh; /* Dynamic viewport height */
   }
   
   /* iPad gets slightly taller keypad */
@@ -195,24 +196,22 @@
   .play {
     display: grid;
     grid-template-rows: auto 1fr;
-    height: var(--vh, 100dvh);
+    height: calc(var(--vh, 1vh) * 100);
   }
   
-  /* Phone layout: board over keypad (two rows) */
+  /* Stage = board (1fr) + keypad (auto). Height uses dynamic viewport var. */
   .stage {
     display: grid;
-    grid-template-rows: 1fr auto; /* board | keypad */
-    height: calc(var(--vh, 100dvh) - var(--header-h));
-    overflow: hidden; /* prevents overlay artifacts */
+    grid-template-rows: 1fr auto;
+    height: calc(calc(var(--vh, 1vh) * 100) - var(--header-h, 84px));
+    overflow: hidden; /* prevents overlap/cropping */
   }
   
-  /* Square board sized by remaining space above the keypad */
+  /* CRITICAL: allow the board to shrink inside its grid area */
   .board-wrap {
-    width: 100%;
-    height: 100%;
     display: grid;
     place-items: center;
-    min-height: 0; /* critical for preventing overflow clamping */
+    min-height: 0;
   }
   
   .game-controls-container {
@@ -252,26 +251,20 @@
     transform: scale(1.02);
   }
   
+  /* Board is a perfect square driven by --board-size */
   .board-outer {
-    /* Available height = viewport - header - keypad - vertical gutters */
-    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - 120px - var(--gutter) * 2); /* Conservative keypad height estimate for board calculation */ /* Reduced keypad height for more board space */ /* Use fixed 200px for board calculation */
-    /* Available width = viewport width - horizontal gutters */
-    --avail-w: calc(100vw - var(--gutter) * 2);
-    /* The board is the biggest square that fits both dimensions */
-    --board-size: min(max(500px, var(--avail-h)), var(--avail-w));
-    
-    width: var(--board-size);
-    height: var(--board-size);
+    width: var(--board-size, 420px);
+    height: var(--board-size, 420px);
     
     border-radius: 24px;
-    overflow: hidden;
+    overflow: hidden;                 /* clip inside the curve */
+    clip-path: inset(0 round 24px);   /* extra safety */
     background: var(--card, #fff);
+    padding: 8px;                     /* inner breathing room */
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 12px; /* Increased padding for better grid visibility */ /* inner breathing room */
-    clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
   }
   
-  /* Grid/cell drawing */
+  /* The grid fills the square and inherits rounding */
   .sudoku-grid {
     width: 100%;
     height: 100%;

@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";  // This gives us the ability to re
 import { useMutation, useQuery } from "@tanstack/react-query";  // This helps us talk to the server and remember data
 import { apiRequest, queryClient } from "@/lib/queryClient";  // This is how we send messages to the server
 import { useToast } from "@/hooks/use-toast";  // This shows pop-up messages to the player
+import { useBoardSize } from "@/hooks/use-board-size";  // This handles dynamic board sizing
 import Header from "@/components/Header";  // This is the top bar with navigation
 import SudokuGrid from "@/components/SudokuGrid";  // This is the actual Sudoku puzzle grid
 import NumericKeypad from "@/components/NumericKeypad";  // This is the number buttons players click
@@ -54,6 +55,9 @@ export default function PlayPage() {
   // useState is like creating a box that can remember one thing and update it
   
   const { toast } = useToast();  // This gives us the ability to show pop-up messages
+  
+  // Initialize dynamic board sizing
+  useBoardSize();
   
   // This remembers which screen we're showing (welcome, playing, or completed)
   const [gameState, setGameState] = useState<GameState>('welcome');
