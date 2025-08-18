@@ -37,11 +37,13 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
           
           // Check if this row should have a thicker bottom border (every 3rd row)
           // This creates the 3x3 box divisions that are characteristic of Sudoku
-          const is3x3Border = (rowIndex + 1) % 3 === 0 && rowIndex < 8;
+          // Rows 2, 5, 8 should have thick bottom borders (indices 2, 5, 8)
+          const is3x3Border = (rowIndex + 1) % 3 === 0;
           
           // Check if this column should have a thicker right border (every 3rd column)
           // This also helps create the 3x3 box divisions
-          const is3x3RightBorder = (colIndex + 1) % 3 === 0 && colIndex < 8;
+          // Columns 2, 5, 8 should have thick right borders (indices 2, 5, 8)
+          const is3x3RightBorder = (colIndex + 1) % 3 === 0;
           
           // Now we create each individual cell as a button
           return (

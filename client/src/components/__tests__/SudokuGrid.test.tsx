@@ -115,6 +115,36 @@ describe('SudokuGrid', () => {
     expect(col5Cells[0]).toHaveClass('border-r-2', 'border-r-gray-800');
   });
 
+  it('CRITICAL: must have thick horizontal lines every 3 rows', () => {
+    render(<SudokuGrid {...defaultProps} />);
+    
+    const cells = screen.getAllByRole('button');
+    
+    // Check that rows 2, 5, and 8 have thick bottom borders
+    // These are the rows that should have thick horizontal lines
+    const row2Cells = cells.slice(18, 27); // Row 2 (index 2)
+    const row5Cells = cells.slice(45, 54); // Row 5 (index 5)
+    const row8Cells = cells.slice(72, 81); // Row 8 (index 8)
+    
+    // Debug: Log the actual classes being applied
+    console.log('Row 2, Cell 0 classes:', row2Cells[0].className);
+    console.log('Row 5, Cell 0 classes:', row5Cells[0].className);
+    console.log('Row 8, Cell 0 classes:', row8Cells[0].className);
+    
+    // Every cell in these rows should have thick bottom borders
+    row2Cells.forEach(cell => {
+      expect(cell).toHaveClass('border-b-2', 'border-b-gray-800');
+    });
+    
+    row5Cells.forEach(cell => {
+      expect(cell).toHaveClass('border-b-2', 'border-b-gray-800');
+    });
+    
+    row8Cells.forEach(cell => {
+      expect(cell).toHaveClass('border-b-2', 'border-b-gray-800');
+    });
+  });
+
   it('maintains thin borders for individual cell separation', () => {
     render(<SudokuGrid {...defaultProps} />);
     

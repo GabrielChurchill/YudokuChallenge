@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yudoku Board Sizing Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Import Inter font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -151,7 +152,6 @@
         /* Grid cell - matches original styling */
         .grid-cell {
             background: white;
-            border: 1px solid #d1d5db; /* Re-add thin borders for horizontal lines */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -194,16 +194,35 @@
         
 
         
-        /* Thick borders for 3x3 box divisions - simple border approach */
-        .grid-container .grid-cell[data-row="2"],
-        .grid-container .grid-cell[data-row="5"],
-        .grid-container .grid-cell[data-row="8"] {
-            border-bottom: 3px solid #374151 !important;
+        /* Thick borders for 3x3 box divisions - using pseudo-elements for guaranteed visibility */
+        .grid-cell.border-b-2.border-b-gray-800 {
+            position: relative;
         }
         
-        .grid-container .grid-cell[data-col="2"],
-        .grid-container .grid-cell[data-col="5"] {
-            border-right: 3px solid #374151 !important;
+        .grid-cell.border-b-2.border-b-gray-800::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: -1px;
+            right: -1px;
+            height: 6px;
+            background: #000000;
+            z-index: 100;
+        }
+        
+        .grid-cell.border-r-2.border-r-gray-800 {
+            position: relative;
+        }
+        
+        .grid-cell.border-r-2.border-r-gray-800::before {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #000000;
+            z-index: 100;
         }
         
 
@@ -470,7 +489,7 @@
             for (let row = 0; row < 9; row++) {
                 for (let col = 0; col < 9; col++) {
                     const cell = document.createElement('button');
-                    cell.className = 'grid-cell';
+                    cell.className = 'grid-cell border border-gray-300';
                     cell.setAttribute('data-row', row);
                     cell.setAttribute('data-col', col);
                     
@@ -480,8 +499,15 @@
                         cell.classList.add('initial');
                     }
                     
-                    // CSS handles thick borders via data attributes
-                    // No JavaScript needed for borders - CSS selectors handle it
+                    // Apply Tailwind classes for thick borders
+                    if ((row + 1) % 3 === 0) {
+                        cell.classList.add('border-b-2', 'border-b-gray-800');
+                        console.log(`Row ${row} gets thick bottom border`);
+                    }
+                    if ((col + 1) % 3 === 0) {
+                        cell.classList.add('border-r-2', 'border-r-gray-800');
+                        console.log(`Col ${col} gets thick right border`);
+                    }
                     
                     cell.addEventListener('click', function() {
                         // Remove selection from all cells
@@ -497,6 +523,32 @@
         
         // Initialize the grid
         generateGrid();
+        
+        // Debug: Check what CSS is actually applied
+        setTimeout(() => {
+            console.log('=== CSS Debug Info ===');
+            const row2Cell = document.querySelector('.grid-cell[data-row="2"]');
+            const row5Cell = document.querySelector('.grid-cell[data-row="5"]');
+            const row8Cell = document.querySelector('.grid-cell[data-row="8"]');
+            
+            if (row2Cell) {
+                const styles = window.getComputedStyle(row2Cell);
+                console.log('Row 2 cell classes:', row2Cell.className);
+                console.log('Row 2 border-bottom:', styles.borderBottom);
+                console.log('Row 2 border-bottom-width:', styles.borderBottomWidth);
+                console.log('Row 2 border-bottom-color:', styles.borderBottomColor);
+            }
+            
+            if (row5Cell) {
+                const styles = window.getComputedStyle(row5Cell);
+                console.log('Row 5 border-bottom:', styles.borderBottom);
+            }
+            
+            if (row8Cell) {
+                const styles = window.getComputedStyle(row8Cell);
+                console.log('Row 8 border-bottom:', styles.borderBottom);
+            }
+        }, 100);
         
         // Add number button functionality
         document.querySelectorAll('.number-btn').forEach(btn => {
