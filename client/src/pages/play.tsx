@@ -94,8 +94,8 @@ export default function PlayPage() {
   // Comprehensive diagnostic hook for board sizing issues
   useEffect(() => {
     if (gameState === 'playing') {
-      // Enable debug CSS
-      document.documentElement.classList.add('debug');
+      // Debug CSS disabled - remove colored borders
+      document.documentElement.classList.remove('debug');
       
       const runDiagnostics = () => {
         const stage = document.querySelector('.stage');
@@ -563,13 +563,11 @@ export default function PlayPage() {
               </div>
               
             
-              <div className="sudoku-grid">
-                <SudokuGrid
-                  grid={grid}
-                  selectedCell={selectedCell}
-                  onCellSelect={setSelectedCell}
-                />
-              </div>
+              <SudokuGrid
+                grid={grid}
+                selectedCell={selectedCell}
+                onCellSelect={setSelectedCell}
+              />
             </div>
           </div>
         </section>
