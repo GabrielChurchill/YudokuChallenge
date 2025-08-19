@@ -200,19 +200,31 @@
   
   /* Phone layout: board over keypad (two rows) */
   .stage {
+    /* DEBUG: Temporary visual borders for diagnostics */
+    border: 3px solid green !important;
+    
     display: grid;
     grid-template-rows: 1fr auto; /* board | keypad */
     height: calc(var(--vh, 100dvh) - var(--header-h));
     overflow: hidden; /* prevents overlay artifacts */
+    gap: 0; /* ensure no unexpected spacing */
   }
   
   /* Square board sized by remaining space above the keypad */
   .board-wrap {
+    /* DEBUG: Temporary visual borders for diagnostics */
+    border: 3px solid blue !important;
+    
     width: 100%;
     height: 100%;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     min-height: 0; /* critical for preventing overflow clamping */
+    overflow: hidden; /* prevent any spillover */
+    
+    /* Ensure proper container behavior */
+    box-sizing: border-box;
   }
   
   .game-controls-container {
@@ -253,22 +265,26 @@
   }
   
   .board-outer {
-    /* Available height = viewport - header - keypad - vertical gutters */
-    --avail-h: calc(var(--vh, 100dvh) - var(--header-h) - 120px - var(--gutter) * 2); /* Conservative keypad height estimate for board calculation */ /* Reduced keypad height for more board space */ /* Use fixed 200px for board calculation */
-    /* Available width = viewport width - horizontal gutters */
-    --avail-w: calc(100vw - var(--gutter) * 2);
-    /* The board is the biggest square that fits both dimensions */
-    --board-size: min(max(500px, var(--avail-h)), var(--avail-w));
+    /* DEBUG: Temporary visual borders for diagnostics */
+    border: 3px solid red !important;
     
-    width: var(--board-size);
-    height: var(--board-size);
+    /* Dynamic sizing: Use actual container space instead of fixed estimates */
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    
+    /* Ensure the board fits within its parent container */
+    aspect-ratio: 1/1; /* Keep it square */
     
     border-radius: 24px;
     overflow: hidden;
     background: var(--card, #fff);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 12px; /* Increased padding for better grid visibility */ /* inner breathing room */
-    clip-path: inset(0 round 24px); /* ensures no bleed past rounded corners */
+    padding: 12px; /* inner breathing room */
+    
+    /* Size to fit parent while maintaining square aspect ratio */
+    object-fit: contain;
   }
   
   /* Grid/cell drawing */
@@ -281,15 +297,17 @@
   
   /* Compact keypad docked at bottom — size naturally based on content */
   .custom-keypad {
+    /* DEBUG: Temporary visual borders for diagnostics */
+    border: 3px solid orange !important;
+    
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: fit-content;
+    flex-shrink: 0; /* prevent keypad from shrinking */
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
     background: var(--card, #fff);
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
   }

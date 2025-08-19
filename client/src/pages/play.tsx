@@ -91,6 +91,75 @@ export default function PlayPage() {
   // This remembers the final time when the player finishes
   const [finalTime, setFinalTime] = useState<string>('');
 
+  // Add diagnostic logging for board sizing issues
+  useEffect(() => {
+    if (gameState === 'playing') {
+      const diagnostics = () => {
+        const stage = document.querySelector('.stage');
+        const boardWrap = document.querySelector('.board-wrap');
+        const boardOuter = document.querySelector('.board-outer');
+        const sudokuGrid = document.querySelector('.sudoku-grid');
+        const keypad = document.querySelector('.custom-keypad');
+        
+        console.group('🔍 Board Sizing Diagnostics');
+        console.log('Viewport:', { 
+          width: window.innerWidth, 
+          height: window.innerHeight,
+          visualViewport: (window as any).visualViewport?.height || 'N/A'
+        });
+        
+        if (stage) {
+          const rect = stage.getBoundingClientRect();
+          console.log('Stage (.stage):', { 
+            width: rect.width, 
+            height: rect.height,
+            computedStyle: getComputedStyle(stage).gridTemplateRows
+          });
+        }
+        
+        if (boardWrap) {
+          const rect = boardWrap.getBoundingClientRect();
+          console.log('Board Wrap (.board-wrap):', { width: rect.width, height: rect.height });
+        }
+        
+        if (boardOuter) {
+          const rect = boardOuter.getBoundingClientRect();
+          const style = getComputedStyle(boardOuter);
+          console.log('Board Outer (.board-outer):', { 
+            width: rect.width, 
+            height: rect.height,
+            cssWidth: style.width,
+            cssHeight: style.height,
+            '--board-size': style.getPropertyValue('--board-size'),
+            '--avail-h': style.getPropertyValue('--avail-h'),
+            '--avail-w': style.getPropertyValue('--avail-w')
+          });
+        }
+        
+        if (sudokuGrid) {
+          const rect = sudokuGrid.getBoundingClientRect();
+          console.log('Sudoku Grid (.sudoku-grid):', { width: rect.width, height: rect.height });
+        }
+        
+        if (keypad) {
+          const rect = keypad.getBoundingClientRect();
+          console.log('Keypad (.custom-keypad):', { width: rect.width, height: rect.height });
+        }
+        
+        console.groupEnd();
+      };
+      
+      // Run diagnostics after layout settles
+      setTimeout(diagnostics, 100);
+      
+      // Add resize listener for ongoing diagnostics
+      const handleResize = () => setTimeout(diagnostics, 100);
+      window.addEventListener('resize', handleResize);
+      
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [gameState]);
+
   // This asks the server for a list of available puzzles
   // It's like asking "what puzzles can people play?"
   const { data: puzzles } = useQuery<Puzzle[]>({
