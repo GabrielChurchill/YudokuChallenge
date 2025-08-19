@@ -23,8 +23,13 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
     // This creates a container for the entire grid
     // grid-cols-9 means "make 9 columns", gap-1 adds small spaces between cells
     // bg-gray-800 makes the background dark gray, p-2 adds padding around the grid
-    <div className="sudoku-grid grid grid-cols-9 gap-0.5 bg-gray-800 p-1 rounded-lg max-w-full max-h-full box-border"
-         style={{ width: '100%', height: '100%' }}>
+    <div className="sudoku-grid grid grid-cols-9 gap-0.5 bg-gray-800 p-1 rounded-lg w-full h-full box-border"
+         style={{ 
+           width: '100%', 
+           height: '100%',
+           maxWidth: '100%',
+           maxHeight: '100%'
+         }}>
       
       {/* This creates each row of the Sudoku puzzle */}
       {grid.map((row, rowIndex) =>
