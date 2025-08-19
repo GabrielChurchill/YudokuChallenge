@@ -98,14 +98,16 @@ export default function PlayPage() {
       document.documentElement.classList.remove('debug');
       
       const runDiagnostics = () => {
-        const stage = document.querySelector('.stage');
-        const boardWrap = document.querySelector('.board-wrap');
+        // Find unified card structure elements
+        const gameCard = document.querySelector('.game-card');
+        const hud = document.querySelector('.game-card__hud');  
+        const boardContainer = document.querySelector('.game-card__board');
         const boardOuter = document.querySelector('#board-outer');
         const sudokuGrid = document.querySelector('.sudoku-grid');
         const keypad = document.querySelector('#keypad');
         const cells = document.querySelectorAll('.sudoku-grid .cell');
         
-        console.group('🔍 Comprehensive Board Diagnostics');
+        console.group('🔍 Unified Card Layout Diagnostics');
         
         // Gather all measurements
         const measurements: any = {};
@@ -113,23 +115,27 @@ export default function PlayPage() {
           width: window.innerWidth,
           height: window.innerHeight,
           visualViewport: (window as any).visualViewport?.height || window.innerHeight,
-          dvh: window.innerHeight
         };
         measurements.viewport = viewport;
         
-        if (stage) {
-          const rect = stage.getBoundingClientRect();
-          measurements.stage = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+        if (gameCard) {
+          const rect = gameCard.getBoundingClientRect();
+          measurements.gameCard = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
         }
         
-        if (boardWrap) {
-          const rect = boardWrap.getBoundingClientRect();
-          measurements.boardWrap = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+        if (hud) {
+          const rect = hud.getBoundingClientRect();
+          measurements.hud = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+        }
+        
+        if (boardContainer) {
+          const rect = boardContainer.getBoundingClientRect();
+          measurements.boardContainer = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
         if (boardOuter) {
           const rect = boardOuter.getBoundingClientRect();
-          measurements.boardOuter = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
+          measurements.boardOuter = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right };
         }
         
         if (sudokuGrid) {
@@ -139,6 +145,8 @@ export default function PlayPage() {
             height: rect.height, 
             top: rect.top, 
             bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
             cellSize: rect.width / 9
           };
         }
@@ -148,52 +156,65 @@ export default function PlayPage() {
           measurements.keypad = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
-        // Cell analysis - critical for last row visibility
+        // Cell count and visibility
         const cellCount = cells.length;
         const lastRowCells = Array.from(cells).slice(72, 81); // Cells 72-80 are row 9
-        let lastRowInside = true;
+        let lastRowFullyVisible = true;
         
         if (lastRowCells.length > 0 && boardOuter) {
           const boardRect = boardOuter.getBoundingClientRect();
-          lastRowInside = lastRowCells.every(cell => {
+          lastRowFullyVisible = lastRowCells.every(cell => {
             const cellRect = cell.getBoundingClientRect();
             return cellRect.bottom <= boardRect.bottom;
           });
         }
         
-        // Overlap detection
+        // Critical validations
         const boardBottom = measurements.boardOuter?.bottom || 0;
         const keypadTop = measurements.keypad?.top || 0;
-        const overlapsKeypad = boardBottom > keypadTop;
+        const noKeypadOverlap = boardBottom <= keypadTop;
         
-        // Validation results
+        // Grid containment within card
+        const gridFullyInCard = measurements.sudokuGrid && measurements.gameCard ? 
+          (measurements.sudokuGrid.left >= measurements.gameCard.left &&
+           measurements.sudokuGrid.right <= measurements.gameCard.right &&
+           measurements.sudokuGrid.top >= measurements.gameCard.top &&
+           measurements.sudokuGrid.bottom <= measurements.gameCard.bottom) : false;
+        
+        // Board containment within card  
+        const boardFullyInCard = measurements.boardOuter && measurements.gameCard ?
+          (measurements.boardOuter.left >= measurements.gameCard.left &&
+           measurements.boardOuter.right <= measurements.gameCard.right &&
+           measurements.boardOuter.top >= measurements.gameCard.top &&
+           measurements.boardOuter.bottom <= measurements.gameCard.bottom) : false;
+        
         const validation = {
           cellCount,
-          lastRowInside,
-          overlapsKeypad,
+          lastRowFullyVisible,
+          noKeypadOverlap,
           cellSizeOK: measurements.sudokuGrid?.cellSize >= 40,
-          boardFitsContainer: measurements.boardOuter && measurements.boardWrap ? 
-            (measurements.boardOuter.width <= measurements.boardWrap.width &&
-             measurements.boardOuter.height <= measurements.boardWrap.height) : false
+          gridFullyInCard,
+          boardFullyInCard
         };
         
         console.table(measurements);
         console.table(validation);
         
-        // Critical assertions
+        // Assertions per requirements
         console.assert(cellCount === 81, `❌ Expected 81 cells, got ${cellCount}`);
-        console.assert(lastRowInside, '❌ Last row (cells 72-80) not fully visible inside #board-outer');
-        console.assert(!overlapsKeypad, '❌ Board overlaps keypad');
+        console.assert(lastRowFullyVisible, '❌ Last row (cells 72-80) not fully visible inside #board-outer');
+        console.assert(noKeypadOverlap, '❌ Board overlaps keypad (#board-outer bottom > #keypad top)');
+        console.assert(gridFullyInCard, '❌ Grid bounding box not fully inside .game-card bounding box');
+        console.assert(boardFullyInCard, '❌ Board bounding box not fully inside .game-card bounding box');
         console.assert(validation.cellSizeOK, `❌ Cell size (${measurements.sudokuGrid?.cellSize?.toFixed(1)}px) too small for touch`);
-        console.assert(validation.boardFitsContainer, '❌ Board exceeds container bounds');
         
-        const allValid = cellCount === 81 && lastRowInside && !overlapsKeypad && 
-                        validation.cellSizeOK && validation.boardFitsContainer;
+        const allValid = cellCount === 81 && lastRowFullyVisible && noKeypadOverlap && 
+                        validation.cellSizeOK && gridFullyInCard && boardFullyInCard;
         
         if (allValid) {
-          console.log('✅ All layout validations passed');
+          console.log('✅ All unified card layout validations passed');
         } else {
-          console.error('🚨 Layout validation failures detected');
+          console.error('🚨 Unified card layout validation failures detected');
         }
         
         console.groupEnd();
@@ -519,9 +540,8 @@ export default function PlayPage() {
     <div className="play bg-yulife-soft">
       <Header />
       <main className="stage">
-        <section className="board-wrap">
-          {/* Game controls above the board */}
-          <div className="game-controls-header flex justify-between items-center mb-3 px-4">
+        <section className="game-card" role="group" aria-label="Sudoku">
+          <header className="game-card__hud">
             <button 
               onClick={handleStopGame}
               className="back-button"
@@ -530,7 +550,7 @@ export default function PlayPage() {
               ←
             </button>
             
-            <div className="game-stats flex items-center space-x-4 text-sm">
+            <div className="game-stats">
               <Timer 
                 startTime={startTime}
                 onElapsedChange={setElapsedMs}
@@ -551,20 +571,21 @@ export default function PlayPage() {
                 <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
               )}
             </div>
-          </div>
+          </header>
           
-          {/* Board container - now has full space */}
-          <div id="board-outer" className="board-outer">
-            <SudokuGrid
-              grid={grid}
-              selectedCell={selectedCell}
-              onCellSelect={setSelectedCell}
-            />
+          <div className="game-card__board">
+            <div id="board-outer">
+              <SudokuGrid
+                grid={grid}
+                selectedCell={selectedCell}
+                onCellSelect={setSelectedCell}
+              />
+            </div>
           </div>
         </section>
 
-      
-        <aside id="keypad" className="custom-keypad" aria-label="Number keypad">
+        
+        <footer id="keypad" className="custom-keypad" aria-label="Number keypad">
           <div className="keypad-grid">
           
             {[1, 2, 3, 4, 5].map((num) => (
@@ -600,7 +621,7 @@ export default function PlayPage() {
               <div className="undo-text">Undo</div>
             </button>
           </div>
-        </aside>
+        </footer>
       </main>
     </div>
   );

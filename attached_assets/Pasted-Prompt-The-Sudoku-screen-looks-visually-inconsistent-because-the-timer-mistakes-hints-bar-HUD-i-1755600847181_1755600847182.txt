@@ -1,0 +1,111 @@
+Prompt:
+The Sudoku screen looks visually inconsistent because the timer/mistakes/hints bar (“HUD”) is rendered as a separate white card, while the Sudoku grid is rendered in a different container below it. This causes misaligned shadows and rounded corners, making the board appear disconnected from the HUD.
+
+Goal: Put the grid inside the same white card as the HUD, keep the keypad visible (not overlapped), and add tests that prove:
+
+9×9 cells are fully visible,
+
+the keypad is not overlapped,
+
+the grid’s bounding box is fully inside the card’s bounding box on common viewports.
+
+1) Inspect & log (no behavior change yet)
+
+Find the elements for:
+
+Card/HUD container (white rounded rectangle with timer): call it .game-card (or rename/create one).
+
+Board wrapper: #board-outer
+
+Grid: .sudoku-grid with 81 .cell
+
+Keypad: #keypad
+
+Log getBoundingClientRect() for card, board-outer, grid, keypad on mount + resize:
+
+Assert 81 cells.
+
+Assert board & grid are fully inside the card:
+
+grid.right/bottom <= card.right/bottom and grid.left/top >= card.left/top
+
+Assert board bottom ≤ keypad top (no overlap).
+
+Print a console.table with these numbers.
+
+2) Refactor DOM so the grid is inside the card
+
+Wrap HUD and board in a single container:
+
+<section class="game-card" role="group" aria-label="Sudoku">
+  <header class="game-card__hud">…back, timer, mistakes, hints…</header>
+  <div class="game-card__board">
+    <div id="board-outer">
+      <div class="sudoku-grid">…81 .cell…</div>
+    </div>
+  </div>
+</section>
+<footer id="keypad">…</footer>
+
+
+Remove any extra outer wrappers that give conflicting widths/margins.
+
+3) CSS to unify visuals and sizing
+
+Make the card one visual surface and clip internals:
+
+.game-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.08);
+  overflow: hidden;                 /* keeps grid visually inside */
+  margin: clamp(12px, 3vh, 24px) auto;
+  padding: 0;
+  max-width: 720px;                 /* tune as needed */
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+}
+
+.game-card__hud { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,.06); }
+
+.game-card__board { padding: 12px; }
+
+#board-outer {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+}
+
+.sudoku-grid,
+.sudoku-grid .cell { box-sizing: border-box; }
+
+
+Ensure page layout sizes the board by width of the card, not by viewport height of the page. If you previously used vh, prefer the card’s width to drive the square board. (If needed for very tall cards, you can cap with max-height: calc(100dvh - keypadHeight - header/paddings).)
+
+4) Visual tests (Playwright) to lock behavior
+
+Add tests for viewports: 1440×900, 1280×800, 1024×768, 768×1024, 390×844.
+
+Assertions:
+
+.sudoku-grid .cell count is 81.
+
+Last row (cells 72–80) bottom ≤ #board-outer bottom.
+
+No overlap: #board-outer bottom ≤ #keypad top.
+
+Containment: grid bbox is fully inside .game-card bbox.
+
+Screenshot #board-outer and .game-card per viewport (toHaveScreenshot) for baselines.
+
+5) Done criteria
+
+Logs show 81 cells, no keypad overlap, grid fully inside card on desktop + iPad.
+
+All Playwright tests pass with updated screenshots.
+
+The screen shows one cohesive white card (HUD + grid), with consistent radius/shadow.
+
+Please implement the DOM refactor and CSS above (adapting selectors to the actual code), add the Playwright tests and diagnostics, run the tests, and post the passing output and screenshots. Do not mark as “fixed” until the tests pass and logs confirm containment.
