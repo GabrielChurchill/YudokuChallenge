@@ -130,20 +130,41 @@ export default function PlayPage() {
             height: rect.height,
             cssWidth: style.width,
             cssHeight: style.height,
-            '--board-size': style.getPropertyValue('--board-size'),
-            '--avail-h': style.getPropertyValue('--avail-h'),
-            '--avail-w': style.getPropertyValue('--avail-w')
+            availableSpace: `${boardWrap?.getBoundingClientRect().width}×${boardWrap?.getBoundingClientRect().height}`,
+            fitsInParent: rect.width <= (boardWrap?.getBoundingClientRect().width || 0) && 
+                         rect.height <= (boardWrap?.getBoundingClientRect().height || 0)
           });
         }
         
         if (sudokuGrid) {
           const rect = sudokuGrid.getBoundingClientRect();
           console.log('Sudoku Grid (.sudoku-grid):', { width: rect.width, height: rect.height });
+          
+          // Check if grid cells are large enough to be usable
+          const cellSize = rect.width / 9; // 9x9 grid
+          if (cellSize < 40) {
+            console.warn('⚠️ Grid cells may be too small for comfortable interaction (< 40px)');
+          }
         }
         
         if (keypad) {
           const rect = keypad.getBoundingClientRect();
           console.log('Keypad (.custom-keypad):', { width: rect.width, height: rect.height });
+        }
+        
+        // Overall layout validation
+        const totalUsedHeight = (boardOuter?.getBoundingClientRect().height || 0) + 
+                               (keypad?.getBoundingClientRect().height || 0);
+        const availableHeight = stage?.getBoundingClientRect().height || 0;
+        
+        if (totalUsedHeight > availableHeight) {
+          console.error('🚨 LAYOUT ERROR: Content exceeds available space!', {
+            totalUsed: totalUsedHeight,
+            available: availableHeight,
+            overflow: totalUsedHeight - availableHeight
+          });
+        } else {
+          console.log('✅ Layout fits within available space');
         }
         
         console.groupEnd();

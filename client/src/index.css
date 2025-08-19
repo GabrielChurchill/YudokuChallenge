@@ -223,7 +223,8 @@
     min-height: 0; /* critical for preventing overflow clamping */
     overflow: hidden; /* prevent any spillover */
     
-    /* Ensure proper container behavior */
+    /* Add padding to prevent board from touching edges */
+    padding: 16px;
     box-sizing: border-box;
   }
   
@@ -268,23 +269,20 @@
     /* DEBUG: Temporary visual borders for diagnostics */
     border: 3px solid red !important;
     
-    /* Dynamic sizing: Use actual container space instead of fixed estimates */
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
+    /* Size to fit parent while maintaining square aspect ratio */
+    width: min(100%, 90vh);
+    height: min(100%, 90vh);
+    max-width: min(100%, 600px); /* reasonable maximum size */
+    max-height: min(100%, 600px);
     
-    /* Ensure the board fits within its parent container */
-    aspect-ratio: 1/1; /* Keep it square */
+    /* Maintain square aspect ratio */
+    aspect-ratio: 1/1;
     
     border-radius: 24px;
     overflow: hidden;
     background: var(--card, #fff);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 12px; /* inner breathing room */
-    
-    /* Size to fit parent while maintaining square aspect ratio */
-    object-fit: contain;
+    padding: 12px;
   }
   
   /* Grid/cell drawing */
