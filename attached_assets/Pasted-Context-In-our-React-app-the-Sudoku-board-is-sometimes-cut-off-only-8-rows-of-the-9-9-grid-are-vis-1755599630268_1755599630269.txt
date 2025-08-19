@@ -1,0 +1,144 @@
+Context
+In our React app, the Sudoku board is sometimes cut off: only 8 rows of the 9×9 grid are visible on desktop and iPad. The keypad must always remain visible and must not be overlapped by the board.
+
+Selectors/structure (use these in diagnostics/tests):
+
+Board container: #board-outer
+
+Grid: .sudoku-grid
+
+Cell: .sudoku-grid .cell (81 total)
+
+Keypad: #keypad
+
+1) Reflect first (don’t change behavior yet)
+
+List 5–7 plausible causes, then narrow to 1–2 most likely. Consider at least:
+
+Viewport height math (100vh vs 100dvh, iOS visual viewport changes, safe-area insets).
+
+Parent/container constraints (flex/grid min/max heights, overflow:hidden).
+
+Aspect-ratio vs available height (square board but height limited by header/keypad).
+
+Sub-pixel rounding from borders/gaps/box-sizing (9× rows slightly exceeding container).
+
+Transforms/zoom/scale wrappers.
+
+Hidden scrollbars reducing effective space.
+
+Any layout that reserves space for the keypad/header incorrectly.
+
+My current hypothesis: #board-outer isn’t tall enough after reserving space for header + keypad → last row gets clipped. Validate or disprove this.
+
+2) Add diagnostics (temporary)
+
+Add visible outlines and runtime measurements without changing layout logic:
+
+Debug CSS (scoped to a .debug class on <html>):
+
+Outline #board-outer (red), .sudoku-grid (green), #keypad (blue).
+
+Debug hook that logs on mount and on resize (use ResizeObserver + window.visualViewport):
+
+getBoundingClientRect() for #board-outer, .sudoku-grid, #keypad.
+
+Count cells = 81; compute if cells 72..80 (last row) are fully inside #board-outer.
+
+Assert the board doesn’t overlap the keypad (boardBottom <= keypadTop).
+
+Console.table the above values and add console.assert lines that fail if any condition isn’t met.
+
+Do not proceed to a code fix until the logs point to the chosen root cause.
+
+3) Add visual tests before the fix
+
+Introduce Playwright tests that fail today and become our guardrail:
+
+Install & scripts:
+
+npm i -D @playwright/test and npx playwright install --with-deps
+
+Add script: "test:e2e": "playwright test --reporter=list"
+
+Create tests/board-visibility.spec.ts:
+
+Viewports to cover: 1440×900, 1280×800, 1024×768, 768×1024, 390×844.
+
+Navigate to the app, assert:
+
+.sudoku-grid .cell count is 81.
+
+For cells 72..80 (last row), each cell’s bottom ≤ board-outer bottom.
+
+board-outer bottom ≤ keypad top (no overlap).
+
+Also take a screenshot of #board-outer per viewport (toHaveScreenshot) for a baseline.
+
+Run npm run test:e2e. Expect failures that match what we see manually.
+
+Do not claim the issue is fixed until these tests pass.
+
+4) Implement the fix (after diagnostics confirm)
+
+Based on findings, adjust sizing so the board is square and fits into available height after reserving header + keypad + padding/insets:
+
+Prefer CSS aspect-ratio: 1/1 on #board-outer.
+
+Compute width using min(availableWidth, availableHeightMinusHeaderKeypad) where:
+
+availableHeightMinusHeaderKeypad uses 100dvh (not 100vh) and subtracts header height, keypad height, page paddings, and env(safe-area-inset-*).
+
+Ensure box-sizing: border-box on containers/cells so borders don’t push content out.
+
+If borders still cause rounding issues, draw thick grid lines via CSS background gradients instead of cumulative per-cell borders.
+
+Keep keypad fixed/anchored and non-overlapping (board must resize, not the keypad).
+
+5) Re-run tests and show proof
+
+Re-run npm run test:e2e and attach:
+
+Test output (all passing).
+
+Updated baseline screenshots.
+
+Console.table from the debug hook on at least desktop + iPad showing:
+
+81 cells,
+
+lastRowInside = true,
+
+overlapsKeypad = false,
+
+final sizes for board-outer, .sudoku-grid, #keypad.
+
+Remove or disable the debug outlines by default (keep the hook behind a flag).
+
+Acceptance Criteria (must all be true)
+
+All 9 rows and 9 columns are visible at once on the listed viewports.
+
+The keypad is always visible and not overlapped by the board.
+
+The board maintains a square aspect ratio without scrollbars.
+
+The Playwright spec passes on all configured viewports and includes updated screenshots.
+
+A short write-up describes which cause was confirmed and why the fix works.
+
+Deliverables
+
+PR/commit with:
+
+Diagnostic hook + debug CSS (guarded).
+
+Playwright test suite.
+
+Fix to layout (CSS/JS).
+
+Test run output & screenshots.
+
+Short reasoning summary.
+
+Only report “fixed” after tests pass and you include the above artifacts.

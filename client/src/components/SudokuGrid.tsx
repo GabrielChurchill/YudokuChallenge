@@ -23,7 +23,7 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
     // This creates a container for the entire grid
     // grid-cols-9 means "make 9 columns", gap-1 adds small spaces between cells
     // bg-gray-800 makes the background dark gray, p-2 adds padding around the grid
-    <div className="grid grid-cols-9 gap-1 bg-gray-800 p-2 rounded-lg w-full h-full">
+    <div className="sudoku-grid grid grid-cols-9 gap-1 bg-gray-800 p-2 rounded-lg w-full h-full">
       
       {/* This creates each row of the Sudoku puzzle */}
       {grid.map((row, rowIndex) =>
@@ -51,6 +51,7 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
               
               // This combines multiple CSS classes to style the cell
               className={cn(
+                "cell",
                 // Basic styling for all cells
                 "bg-white border border-gray-300 flex items-center justify-center font-semibold transition-colors aspect-square",
                 // Hover and focus effects (what happens when you move your mouse over or click on a cell)

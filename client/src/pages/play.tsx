@@ -91,90 +91,119 @@ export default function PlayPage() {
   // This remembers the final time when the player finishes
   const [finalTime, setFinalTime] = useState<string>('');
 
-  // Add diagnostic logging for board sizing issues
+  // Comprehensive diagnostic hook for board sizing issues
   useEffect(() => {
     if (gameState === 'playing') {
-      const diagnostics = () => {
+      // Enable debug CSS
+      document.documentElement.classList.add('debug');
+      
+      const runDiagnostics = () => {
         const stage = document.querySelector('.stage');
         const boardWrap = document.querySelector('.board-wrap');
-        const boardOuter = document.querySelector('.board-outer');
+        const boardOuter = document.querySelector('#board-outer');
         const sudokuGrid = document.querySelector('.sudoku-grid');
-        const keypad = document.querySelector('.custom-keypad');
+        const keypad = document.querySelector('#keypad');
+        const cells = document.querySelectorAll('.sudoku-grid .cell');
         
-        console.group('🔍 Board Sizing Diagnostics');
-        console.log('Viewport:', { 
-          width: window.innerWidth, 
+        console.group('🔍 Comprehensive Board Diagnostics');
+        
+        // Gather all measurements
+        const measurements: any = {};
+        const viewport = {
+          width: window.innerWidth,
           height: window.innerHeight,
-          visualViewport: (window as any).visualViewport?.height || 'N/A'
-        });
+          visualViewport: (window as any).visualViewport?.height || window.innerHeight,
+          dvh: window.innerHeight
+        };
+        measurements.viewport = viewport;
         
         if (stage) {
           const rect = stage.getBoundingClientRect();
-          console.log('Stage (.stage):', { 
-            width: rect.width, 
-            height: rect.height,
-            computedStyle: getComputedStyle(stage).gridTemplateRows
-          });
+          measurements.stage = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
         if (boardWrap) {
           const rect = boardWrap.getBoundingClientRect();
-          console.log('Board Wrap (.board-wrap):', { width: rect.width, height: rect.height });
+          measurements.boardWrap = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
         if (boardOuter) {
           const rect = boardOuter.getBoundingClientRect();
-          const style = getComputedStyle(boardOuter);
-          console.log('Board Outer (.board-outer):', { 
-            width: rect.width, 
-            height: rect.height,
-            cssWidth: style.width,
-            cssHeight: style.height,
-            availableSpace: `${boardWrap?.getBoundingClientRect().width}×${boardWrap?.getBoundingClientRect().height}`,
-            fitsInParent: rect.width <= (boardWrap?.getBoundingClientRect().width || 0) && 
-                         rect.height <= (boardWrap?.getBoundingClientRect().height || 0)
-          });
+          measurements.boardOuter = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
         if (sudokuGrid) {
           const rect = sudokuGrid.getBoundingClientRect();
-          console.log('Sudoku Grid (.sudoku-grid):', { width: rect.width, height: rect.height });
-          
-          // Check if grid cells are large enough to be usable
-          const cellSize = rect.width / 9; // 9x9 grid
-          if (cellSize < 40) {
-            console.warn('⚠️ Grid cells may be too small for comfortable interaction (< 40px)');
-          }
+          measurements.sudokuGrid = { 
+            width: rect.width, 
+            height: rect.height, 
+            top: rect.top, 
+            bottom: rect.bottom,
+            cellSize: rect.width / 9
+          };
         }
         
         if (keypad) {
           const rect = keypad.getBoundingClientRect();
-          console.log('Keypad (.custom-keypad):', { width: rect.width, height: rect.height });
+          measurements.keypad = { width: rect.width, height: rect.height, top: rect.top, bottom: rect.bottom };
         }
         
-        // Overall layout validation
-        const totalUsedHeight = (boardOuter?.getBoundingClientRect().height || 0) + 
-                               (keypad?.getBoundingClientRect().height || 0);
-        const availableHeight = stage?.getBoundingClientRect().height || 0;
+        // Cell analysis - critical for last row visibility
+        const cellCount = cells.length;
+        const lastRowCells = Array.from(cells).slice(72, 81); // Cells 72-80 are row 9
+        let lastRowInside = true;
         
-        if (totalUsedHeight > availableHeight) {
-          console.error('🚨 LAYOUT ERROR: Content exceeds available space!', {
-            totalUsed: totalUsedHeight,
-            available: availableHeight,
-            overflow: totalUsedHeight - availableHeight
+        if (lastRowCells.length > 0 && boardOuter) {
+          const boardRect = boardOuter.getBoundingClientRect();
+          lastRowInside = lastRowCells.every(cell => {
+            const cellRect = cell.getBoundingClientRect();
+            return cellRect.bottom <= boardRect.bottom;
           });
+        }
+        
+        // Overlap detection
+        const boardBottom = measurements.boardOuter?.bottom || 0;
+        const keypadTop = measurements.keypad?.top || 0;
+        const overlapsKeypad = boardBottom > keypadTop;
+        
+        // Validation results
+        const validation = {
+          cellCount,
+          lastRowInside,
+          overlapsKeypad,
+          cellSizeOK: measurements.sudokuGrid?.cellSize >= 40,
+          boardFitsContainer: measurements.boardOuter && measurements.boardWrap ? 
+            (measurements.boardOuter.width <= measurements.boardWrap.width &&
+             measurements.boardOuter.height <= measurements.boardWrap.height) : false
+        };
+        
+        console.table(measurements);
+        console.table(validation);
+        
+        // Critical assertions
+        console.assert(cellCount === 81, `❌ Expected 81 cells, got ${cellCount}`);
+        console.assert(lastRowInside, '❌ Last row (cells 72-80) not fully visible inside #board-outer');
+        console.assert(!overlapsKeypad, '❌ Board overlaps keypad');
+        console.assert(validation.cellSizeOK, `❌ Cell size (${measurements.sudokuGrid?.cellSize?.toFixed(1)}px) too small for touch`);
+        console.assert(validation.boardFitsContainer, '❌ Board exceeds container bounds');
+        
+        const allValid = cellCount === 81 && lastRowInside && !overlapsKeypad && 
+                        validation.cellSizeOK && validation.boardFitsContainer;
+        
+        if (allValid) {
+          console.log('✅ All layout validations passed');
         } else {
-          console.log('✅ Layout fits within available space');
+          console.error('🚨 Layout validation failures detected');
         }
         
         console.groupEnd();
       };
       
       // Run diagnostics after layout settles
-      setTimeout(diagnostics, 100);
+      setTimeout(runDiagnostics, 100);
       
       // Add resize listener for ongoing diagnostics
-      const handleResize = () => setTimeout(diagnostics, 100);
+      const handleResize = () => setTimeout(runDiagnostics, 100);
       window.addEventListener('resize', handleResize);
       
       return () => window.removeEventListener('resize', handleResize);
@@ -500,7 +529,7 @@ export default function PlayPage() {
             >
               ←
             </button>
-            <div className="board-outer">
+            <div id="board-outer" className="board-outer">
             
               <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
                 <div className="flex justify-between items-center text-sm">
@@ -546,7 +575,7 @@ export default function PlayPage() {
         </section>
 
       
-        <aside className="custom-keypad" aria-label="Number keypad">
+        <aside id="keypad" className="custom-keypad" aria-label="Number keypad">
           <div className="keypad-grid">
           
             {[1, 2, 3, 4, 5].map((num) => (

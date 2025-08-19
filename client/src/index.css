@@ -58,6 +58,23 @@
   --yulife-indigo: hsl(245, 84%, 63%);
 }
 
+/* DEBUG: Comprehensive diagnostics - controlled by .debug class */
+.debug #board-outer {
+  outline: 3px solid red !important;
+}
+
+.debug .sudoku-grid {
+  outline: 3px solid green !important;
+}
+
+.debug #keypad {
+  outline: 3px solid blue !important;
+}
+
+.debug .sudoku-grid .cell {
+  outline: 1px solid orange !important;
+}
+
 .dark {
   --background: hsl(0, 0%, 0%);
   --foreground: hsl(200, 6.6667%, 91.1765%);
