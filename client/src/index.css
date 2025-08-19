@@ -235,8 +235,12 @@
     overflow: hidden; /* prevent any spillover */
     
     /* Add padding to prevent board from touching edges */
-    padding: 16px;
+    padding: 12px;
     box-sizing: border-box;
+    
+    /* Ensure reasonable max constraints */
+    max-width: 100vw;
+    max-height: calc(100vh - 200px); /* Reserve space for keypad */
   }
   
   .game-controls-container {
@@ -277,22 +281,26 @@
   }
   
   .board-outer {
-    /* Fit within available space while maintaining square */
-    width: 100%;
-    height: 100%;
+    /* Size constraints: fit within available space but don't exceed practical limits */
+    width: min(100%, 100vw - 32px);
+    height: min(100%, 100vw - 32px);
+    max-width: 500px; /* Reasonable maximum for usability */
+    max-height: 500px;
+    
+    /* Maintain square aspect ratio */
     aspect-ratio: 1/1;
     
-    /* Ensure proper box sizing and prevent overflow */
+    /* Prevent overflow and ensure proper box sizing */
     box-sizing: border-box;
     overflow: hidden;
     
-    /* Minimal styling to maximize content space */
+    /* Styling */
     border-radius: 24px;
     background: var(--card, #fff);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    padding: 4px; /* Minimal padding to prevent edge touching */
+    padding: 8px;
     
-    /* Ensure grid content fits exactly */
+    /* Center content within container */
     display: flex;
     align-items: center;
     justify-content: center;
