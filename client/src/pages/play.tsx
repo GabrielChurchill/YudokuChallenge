@@ -520,8 +520,8 @@ export default function PlayPage() {
       <Header />
       <main className="stage">
         <section className="board-wrap">
-          <div className="game-controls-container">
-          
+          {/* Game controls above the board */}
+          <div className="game-controls-header flex justify-between items-center mb-3 px-4">
             <button 
               onClick={handleStopGame}
               className="back-button"
@@ -529,46 +529,37 @@ export default function PlayPage() {
             >
               ←
             </button>
-            <div id="board-outer" className="board-outer">
             
-              <div className="game-header p-3 bg-white/50 backdrop-blur-sm rounded-lg mb-2">
-                <div className="flex justify-between items-center text-sm">
-                  <div className="text-center">
-                  
-                    <Timer 
-                      startTime={startTime}
-                      onElapsedChange={setElapsedMs}
-                      mistakes={mistakes}
-                      hints={hints}
-                    />
-                  </div>
-                  <div className="text-right text-xs text-gray-600 space-x-3">
-                  
-                    <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
-                    
-                  
-                    {selectedCell && !grid[selectedCell.row]?.[selectedCell.col]?.value ? (
-                      <button
-                        onClick={handleHint}
-                        className="hint-button bg-yulife-indigo hover:bg-yulife-purple text-white px-2 py-1 rounded text-xs font-semibold transition-colors"
-                      >
-                        Get Hint (+30s)
-                      </button>
-                    ) : (
-                      /* Show how many hints they've used */
-                      <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-            
-              <SudokuGrid
-                grid={grid}
-                selectedCell={selectedCell}
-                onCellSelect={setSelectedCell}
+            <div className="game-stats flex items-center space-x-4 text-sm">
+              <Timer 
+                startTime={startTime}
+                onElapsedChange={setElapsedMs}
+                mistakes={mistakes}
+                hints={hints}
               />
+              
+              <span>Mistakes: <span className="font-semibold text-red-500">{mistakes}/3</span></span>
+              
+              {selectedCell && !grid[selectedCell.row]?.[selectedCell.col]?.value ? (
+                <button
+                  onClick={handleHint}
+                  className="hint-button bg-yulife-indigo hover:bg-yulife-purple text-white px-2 py-1 rounded text-xs font-semibold transition-colors"
+                >
+                  Get Hint (+30s)
+                </button>
+              ) : (
+                <span>Hints: <span className="font-semibold text-yulife-indigo">{hints}</span></span>
+              )}
             </div>
+          </div>
+          
+          {/* Board container - now has full space */}
+          <div id="board-outer" className="board-outer">
+            <SudokuGrid
+              grid={grid}
+              selectedCell={selectedCell}
+              onCellSelect={setSelectedCell}
+            />
           </div>
         </section>
 
