@@ -54,14 +54,14 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
               className={cn(
                 "cell",
                 // Basic styling for all cells
-                "bg-white border border-gray-300 flex items-center justify-center font-semibold transition-colors aspect-square",
+                "bg-white border border-gray-200 flex items-center justify-center font-semibold transition-all aspect-square",
                 // Hover and focus effects (what happens when you move your mouse over or click on a cell)
-                "hover:bg-blue-50 focus:bg-blue-100 focus:ring-2 focus:ring-yulife-indigo focus:outline-none",
+                "hover:bg-blue-50 focus:bg-blue-100 focus:ring-2 focus:ring-yulife-indigo focus:outline-none focus:z-10",
                 // Size and text styling
                 "text-lg min-h-[44px] min-w-[44px]",
                 
                 // Special styling for the selected cell (the one you clicked on)
-                isSelected && "bg-blue-100 ring-2 ring-yulife-indigo",
+                isSelected && "bg-yulife-indigo text-white ring-2 ring-yulife-purple shadow-lg",
                 
                 // Special styling for cells that were part of the original puzzle (can't be changed)
                 cell.isInitial && "bg-gray-100 font-bold",
@@ -70,8 +70,8 @@ export default function SudokuGrid({ grid, selectedCell, onCellSelect }: SudokuG
                 !cell.isValid && !cell.isInitial && "text-red-500",
                 
                 // Add thicker borders to create the 3x3 box divisions
-                is3x3Border && "border-b-2 border-b-gray-800",
-                is3x3RightBorder && "border-r-2 border-r-gray-800"
+                is3x3Border && "border-b-2 border-b-gray-700",
+                is3x3RightBorder && "border-r-2 border-r-gray-700"
               )}
               
               // What happens when you click on this cell

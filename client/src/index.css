@@ -232,7 +232,7 @@
     overflow: hidden;                 /* keeps grid visually inside */
     margin: clamp(12px, 3vh, 24px) auto;
     padding: 0;
-    max-width: 720px;                 /* tune as needed */
+    max-width: min(720px, 100vw - 24px); /* Cap width for ultrawide screens */
     display: grid;
     grid-template-rows: auto 1fr;
     gap: 0;
@@ -255,8 +255,13 @@
     font-size: 14px;
   }
 
+  /* Timer typography improvements */
+  .timer {
+    font-variant-numeric: tabular-nums;
+  }
+
   .game-card__board { 
-    padding: 12px; 
+    padding: 12px 12px 12px 12px; /* Equal top/bottom padding - no gutter */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -341,6 +346,8 @@
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
+    /* Ensure iOS safe area support */
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
   /* 2×5 keypad grid layout */

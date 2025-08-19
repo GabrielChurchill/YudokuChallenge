@@ -1,0 +1,61 @@
+What looks off right now
+
+There’s a large white gutter below the grid inside the card (visible bar at the bottom). It feels like unused space and makes the board look slightly “lifted.”
+
+The HUD (timer/mistakes/hints) and the grid don’t share the same internal rhythm: padding above the grid is larger than below.
+
+Quick wins (visual polish)
+
+Remove/normalize the bottom gutter inside the card so top/bottom padding match:
+
+.game-card__board { padding: 12px 12px 12px; } /* not bigger at bottom */
+
+
+Timer typography: make digits align/animate less:
+
+.timer { font-variant-numeric: tabular-nums; }
+
+
+Grid line weights: lighten inner lines, keep 3×3 separators bold for clarity.
+
+Shadow/radius: ensure the card’s shadow is subtle and the grid doesn’t cast an extra shadow that competes with the card.
+
+Interaction/Usability
+
+Selected cell aids: highlight row, column, and 3×3 box of the focused cell.
+
+Keypad states: show selected number, disable numbers that are “complete,” and display a small count remaining (e.g., “5× left”).
+
+Notes mode: a clear toggle (Notes/Ink). Long-press on keypad to switch is a nice bonus.
+
+Error feedback: brief shake/flash on invalid placements; keep it gentle.
+
+Layout & responsiveness
+
+Cap card width (e.g., 720–800px) so the grid never feels tiny on ultrawide screens.
+
+Ensure the board still sizes from available height minus keypad (you’ve fixed this—keep 100dvh/safe-area math).
+
+Keep the keypad pinned and never overlapping; add padding-bottom: env(safe-area-inset-bottom) for iOS.
+
+Accessibility
+
+Keyboard input: 1–9 keys fill, arrows move; Esc clears selection.
+
+Focus rings on cells and keypad buttons; minimum 44×44 px targets.
+
+Contrast: timer and “Mistakes 0/3” should pass WCAG 4.5:1 in both light and gradient backgrounds.
+
+ARIA: group the board (role="grid", cells as role="gridcell"), announce errors via aria-live="polite".
+
+Guardrails / tests to add
+
+Extend your Playwright spec to assert:
+
+Equal top/bottom padding inside .game-card__board (or that the grid bottom ≈ card content bottom within 1px).
+
+Containment still true (grid fully inside card).
+
+Keyboard interactions (press “5”, confirm a “5” appears in the focused cell).
+
+Focus visibility (snapshot a focused cell and expect visible outline).
